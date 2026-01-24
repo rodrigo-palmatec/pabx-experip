@@ -193,7 +193,12 @@ create_asterisk_user() {
     log_step "Criando usuário asterisk..."
     
     if ! id "$ASTERISK_USER" &>/dev/null; then
-        useradd -r -d /var/lib/asterisk -s /sbin/nologin $ASTERISK_USER
+        # Criar grupo se não existir
+        if ! getent group "$ASTERISK_GROUP" &>/dev/null; then
+            groupadd -r "$ASTERISK_GROUP"
+        fi
+        # Criar usuário
+        useradd -r -g "$ASTERISK_GROUP" -d /var/lib/asterisk -s /sbin/nologin "$ASTERISK_USER"
         log_info "Usuário $ASTERISK_USER criado"
     else
         log_info "Usuário $ASTERISK_USER já existe"
