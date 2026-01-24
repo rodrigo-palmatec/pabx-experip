@@ -156,6 +156,11 @@ configure_permissions() {
     chown -R $WEBUI_USER:$WEBUI_USER "$WEBUI_DIR"
     chmod 750 "$WEBUI_DIR"
     
+    # Criar diretório de logs
+    mkdir -p /var/log/pabx-webui
+    chown $WEBUI_USER:$WEBUI_USER /var/log/pabx-webui
+    chmod 750 /var/log/pabx-webui
+    
     # Adicionar usuário webui ao grupo asterisk para leitura de configs
     usermod -a -G asterisk $WEBUI_USER 2>/dev/null || true
     
