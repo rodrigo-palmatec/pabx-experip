@@ -110,10 +110,24 @@ class ConfigManager {
       const processed = new Set();
       
       for (const [section, values] of Object.entries(config)) {
-        if (values.type === 'endpoint' && !section.includes('-') && !processed.has(section)) {
+        // Detectar endpoints: tem type=endpoint OU herda de endpoint-template
+        const isEndpoint = values.type === 'endpoint' || values._inherit === 'endpoint-template';
+        
+        if (isEndpoint && !section.includes('-') && !section.includes('template') && !processed.has(section)) {
           processed.add(section);
+          
+          // Extrair nome do callerid se existir
+          let name = section;
+          if (values.callerid) {
+            const match = values.callerid.match(/"([^"]+)"/);
+            if (match) {
+              name = match[1];
+            }
+          }
+          
           extensions.push({
             extension: section,
+            name: name,
             callerid: values.callerid || section,
             context: values.context || 'internal',
             auth: values.auth,
