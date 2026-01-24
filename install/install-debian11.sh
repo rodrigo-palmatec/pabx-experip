@@ -514,6 +514,7 @@ bind = 0.0.0.0:5060
 [endpoint-template](!)
 type = endpoint
 context = internal
+transport = transport-udp
 disallow = all
 allow = ulaw
 allow = alaw
@@ -522,6 +523,9 @@ direct_media = no
 trust_id_inbound = yes
 device_state_busy_at = 1
 dtmf_mode = rfc4733
+rtp_symmetric = yes
+force_rport = yes
+rewrite_contact = yes
 
 ; Template para autenticação
 [auth-template](!)
@@ -533,7 +537,6 @@ auth_type = userpass
 type = aor
 max_contacts = 1
 remove_existing = yes
-qualify_frequency = 60
 
 ; Ramal de exemplo 1001
 ;[1001](endpoint-template)
