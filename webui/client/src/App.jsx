@@ -7,6 +7,12 @@ import Extensions from './pages/Extensions'
 import Trunks from './pages/Trunks'
 import Calls from './pages/Calls'
 import System from './pages/System'
+import Categories from './pages/Categories'
+import Groups from './pages/Groups'
+import Queues from './pages/Queues'
+import ServiceHours from './pages/ServiceHours'
+import Reports from './pages/Reports'
+import Blacklist from './pages/Blacklist'
 
 function PrivateRoute({ children }) {
   const { isAuthenticated, loading } = useAuth()
@@ -38,6 +44,12 @@ function App() {
             <Route path="trunks" element={<Trunks />} />
             <Route path="calls" element={<Calls />} />
             <Route path="system" element={<System />} />
+            <Route path="categories" element={<Categories />} />
+            <Route path="groups" element={<Groups />} />
+            <Route path="queues" element={<Queues />} />
+            <Route path="service-hours" element={<ServiceHours />} />
+            <Route path="reports" element={<Reports />} />
+            <Route path="blacklist" element={<Blacklist />} />
           </Route>
         </Routes>
       </BrowserRouter>

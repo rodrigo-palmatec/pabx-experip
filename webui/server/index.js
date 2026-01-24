@@ -7,11 +7,36 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
 const logger = require('./utils/logger');
+
+// Database
+const { syncDatabase } = require('./models');
+
+// Routes
 const authRoutes = require('./routes/auth');
 const extensionsRoutes = require('./routes/extensions');
 const trunksRoutes = require('./routes/trunks');
 const systemRoutes = require('./routes/system');
 const callsRoutes = require('./routes/calls');
+const categoriesRoutes = require('./routes/categories');
+const groupsRoutes = require('./routes/groups');
+const profilesRoutes = require('./routes/profiles');
+const costCentersRoutes = require('./routes/costCenters');
+const queuesRoutes = require('./routes/queues');
+const peersRoutes = require('./routes/peers');
+const inboundRoutesRoutes = require('./routes/inboundRoutes');
+const outboundRoutesRoutes = require('./routes/outboundRoutes');
+const serviceHoursRoutes = require('./routes/serviceHours');
+const holidaysRoutes = require('./routes/holidays');
+const blacklistRoutes = require('./routes/blacklist');
+const conferencesRoutes = require('./routes/conferences');
+const mohRoutes = require('./routes/moh');
+const ivrsRoutes = require('./routes/ivrs');
+const reportsRoutes = require('./routes/reports');
+const clickToCallRoutes = require('./routes/clickToCall');
+const contactsRoutes = require('./routes/contacts');
+const callbacksRoutes = require('./routes/callbacks');
+const customRulesRoutes = require('./routes/customRules');
+
 const AmiManager = require('./services/ami');
 
 const app = express();
@@ -55,6 +80,25 @@ app.use('/api/extensions', extensionsRoutes);
 app.use('/api/trunks', trunksRoutes);
 app.use('/api/system', systemRoutes);
 app.use('/api/calls', callsRoutes);
+app.use('/api/categories', categoriesRoutes);
+app.use('/api/groups', groupsRoutes);
+app.use('/api/profiles', profilesRoutes);
+app.use('/api/costCenters', costCentersRoutes);
+app.use('/api/queues', queuesRoutes);
+app.use('/api/peers', peersRoutes);
+app.use('/api/inboundRoutes', inboundRoutesRoutes);
+app.use('/api/outboundRoutes', outboundRoutesRoutes);
+app.use('/api/serviceHours', serviceHoursRoutes);
+app.use('/api/holidays', holidaysRoutes);
+app.use('/api/blacklist', blacklistRoutes);
+app.use('/api/conferences', conferencesRoutes);
+app.use('/api/moh', mohRoutes);
+app.use('/api/ivrs', ivrsRoutes);
+app.use('/api/reports', reportsRoutes);
+app.use('/api/clickToCall', clickToCallRoutes);
+app.use('/api/contacts', contactsRoutes);
+app.use('/api/callbacks', callbacksRoutes);
+app.use('/api/customRules', customRulesRoutes);
 
 // Servir frontend em produção
 if (process.env.NODE_ENV === 'production') {
@@ -98,9 +142,24 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 3000;
 const HOST = process.env.HOST || '127.0.0.1';
 
-server.listen(PORT, HOST, () => {
-  logger.info(`Servidor PABX Experip WebUI rodando em http://${HOST}:${PORT}`);
-});
+// Inicializar banco de dados e servidor
+const startServer = async () => {
+  try {
+    // Sincronizar banco de dados
+    await syncDatabase();
+    logger.info('Banco de dados sincronizado');
+
+    // Iniciar servidor HTTP
+    server.listen(PORT, HOST, () => {
+      logger.info(`Servidor PABX Experip WebUI rodando em http://${HOST}:${PORT}`);
+    });
+  } catch (error) {
+    logger.error('Erro ao iniciar servidor:', error);
+    process.exit(1);
+  }
+};
+
+startServer();
 
 // Graceful shutdown
 process.on('SIGTERM', () => {

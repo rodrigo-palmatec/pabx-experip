@@ -8,15 +8,27 @@ import {
   Settings, 
   LogOut,
   Menu,
-  X
+  X,
+  Users,
+  Clock,
+  BarChart3,
+  Ban,
+  Layers,
+  Route
 } from 'lucide-react'
 import { useState } from 'react'
 
 const navItems = [
   { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
   { path: '/extensions', icon: Phone, label: 'Ramais' },
+  { path: '/categories', icon: Layers, label: 'Categorias' },
+  { path: '/groups', icon: Users, label: 'Grupos' },
+  { path: '/queues', icon: Route, label: 'Filas' },
   { path: '/trunks', icon: Network, label: 'Troncos' },
   { path: '/calls', icon: PhoneCall, label: 'Chamadas' },
+  { path: '/service-hours', icon: Clock, label: 'Horários' },
+  { path: '/blacklist', icon: Ban, label: 'Blacklist' },
+  { path: '/reports', icon: BarChart3, label: 'Relatórios' },
   { path: '/system', icon: Settings, label: 'Sistema' },
 ]
 
