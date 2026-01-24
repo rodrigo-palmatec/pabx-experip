@@ -207,15 +207,22 @@ create_asterisk_user() {
 
 # Copiar fonte do Asterisk
 copy_source() {
-    log_step "Copiando código fonte do PABX Experip..."
+    log_step "Verificando código fonte do PABX Experip..."
     
     SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
     SOURCE_DIR="$(dirname "$SCRIPT_DIR")"
+    
+    # Se já estamos no diretório de instalação, não precisa copiar
+    if [ "$SOURCE_DIR" = "$INSTALL_DIR" ]; then
+        log_info "Código fonte já está em $INSTALL_DIR"
+        return 0
+    fi
     
     mkdir -p "$INSTALL_DIR"
     
     # Copiar arquivos do repositório
     if [ -d "$SOURCE_DIR/.git" ]; then
+        log_info "Copiando de $SOURCE_DIR para $INSTALL_DIR..."
         cp -r "$SOURCE_DIR"/* "$INSTALL_DIR/"
         log_info "Código fonte copiado para $INSTALL_DIR"
     else
