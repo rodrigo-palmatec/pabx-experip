@@ -77,12 +77,26 @@ copy_webui_files() {
 }
 
 install_dependencies() {
-    log_step "Instalando dependências Node.js..."
+    log_step "Instalando dependências Node.js do backend..."
     
     cd "$WEBUI_DIR"
     npm install --production
     
-    log_info "Dependências instaladas"
+    log_info "Dependências do backend instaladas"
+}
+
+build_frontend() {
+    log_step "Compilando frontend React..."
+    
+    cd "$WEBUI_DIR/client"
+    
+    # Instalar dependências do frontend
+    npm install
+    
+    # Compilar o frontend
+    npm run build
+    
+    log_info "Frontend compilado com sucesso"
 }
 
 create_env_file() {
@@ -310,6 +324,7 @@ main() {
     create_webui_user
     copy_webui_files
     install_dependencies
+    build_frontend
     create_env_file
     configure_permissions
     configure_systemd
