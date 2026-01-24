@@ -137,7 +137,7 @@ install_dependencies() {
         liblua5.2-dev \
         liburiparser-dev \
         libxslt1-dev \
-        libmysqlclient-dev \
+        libmariadb-dev \
         libbluetooth-dev \
         libradcli-dev \
         freetds-dev \
