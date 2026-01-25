@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { PhoneCallback, Plus, Trash2, Edit2, AlertCircle, CheckCircle, XCircle } from 'lucide-react'
+import { PhoneIncoming, Plus, Trash2, Edit2, AlertCircle, CheckCircle, XCircle } from 'lucide-react'
 import api from '../services/api'
 
 function CallbackModal({ isOpen, onClose, onSave, callback, queues, ivrs, profiles }) {
@@ -347,7 +347,7 @@ export default function Callbacks() {
           </div>
         ) : callbacks.length === 0 ? (
           <div className="text-center py-12 text-gray-500">
-            <PhoneCallback className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+            <PhoneIncoming className="w-12 h-12 mx-auto mb-4 text-gray-300" />
             <p>Nenhum callback configurado</p>
             <p className="text-sm mt-1">Configure callbacks para retornar ligações perdidas automaticamente</p>
           </div>
@@ -369,7 +369,7 @@ export default function Callbacks() {
                   <tr key={cb.id} className="border-b border-gray-50 hover:bg-gray-50">
                     <td className="py-3">
                       <div className="flex items-center gap-2">
-                        <PhoneCallback className="w-4 h-4 text-primary-500" />
+                        <PhoneIncoming className="w-4 h-4 text-primary-500" />
                         <span className="font-medium">{cb.name}</span>
                       </div>
                     </td>
