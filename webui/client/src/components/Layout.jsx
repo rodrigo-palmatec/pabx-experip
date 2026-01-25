@@ -25,7 +25,7 @@ import {
   BookUser,
   MousePointerClick,
   Music,
-  PhoneCallback,
+  PhoneIncoming,
   Monitor,
   Workflow,
   Mic
@@ -44,7 +44,7 @@ const navItems = [
   { path: '/ivrs', icon: MessageSquare, label: 'URA/IVR' },
   { path: '/conferences', icon: Video, label: 'Conferências' },
   { path: '/moh', icon: Music, label: 'Músicas de Espera' },
-  { path: '/callbacks', icon: PhoneCallback, label: 'CallBack' },
+  { path: '/callbacks', icon: PhoneIncoming, label: 'CallBack' },
   { path: '/trunks', icon: Network, label: 'Troncos' },
   { path: '/inbound-routes', icon: ArrowDownToLine, label: 'Rotas Entrada' },
   { path: '/outbound-routes', icon: ArrowUpFromLine, label: 'Rotas Saída' },
