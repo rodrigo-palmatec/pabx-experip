@@ -2,9 +2,9 @@ const express = require('express');
 const router = express.Router();
 const { Contact, Peer } = require('../models');
 const { Op } = require('sequelize');
-const authMiddleware = require('../middleware/auth');
+const { authenticateToken } = require('../middleware/auth');
 
-router.use(authMiddleware);
+router.use(authenticateToken);
 
 // GET /api/contacts - List contacts
 router.get('/', async (req, res) => {

@@ -1,9 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const { ClickToCall, Peer } = require('../models');
-const authMiddleware = require('../middleware/auth');
+const { authenticateToken } = require('../middleware/auth');
 
-router.use(authMiddleware);
+router.use(authenticateToken);
 
 // POST /api/calls - Make a click-to-call
 router.post('/', async (req, res) => {

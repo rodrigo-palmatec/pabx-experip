@@ -1,9 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const { OutboundRoute, Trunk, Profile } = require('../models');
-const authMiddleware = require('../middleware/auth');
+const { authenticateToken } = require('../middleware/auth');
 
-router.use(authMiddleware);
+router.use(authenticateToken);
 
 // GET /api/outboundRoutes - List all outbound routes
 router.get('/', async (req, res) => {

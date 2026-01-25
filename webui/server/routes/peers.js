@@ -2,9 +2,9 @@ const express = require('express');
 const router = express.Router();
 const { Peer, Category, Profile, CostCenter, Group, PeerGroup, User } = require('../models');
 const ConfigService = require('../services/config');
-const authMiddleware = require('../middleware/auth');
+const { authenticateToken } = require('../middleware/auth');
 
-router.use(authMiddleware);
+router.use(authenticateToken);
 
 const configService = new ConfigService();
 

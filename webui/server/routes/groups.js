@@ -1,9 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const { Group, Peer, PeerGroup } = require('../models');
-const authMiddleware = require('../middleware/auth');
+const { authenticateToken } = require('../middleware/auth');
 
-router.use(authMiddleware);
+router.use(authenticateToken);
 
 // GET /api/groups - List all groups
 router.get('/', async (req, res) => {

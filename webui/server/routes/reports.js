@@ -3,9 +3,9 @@ const router = express.Router();
 const { CDR, Trunk, Queue, CostCenter, Peer } = require('../models');
 const { Op } = require('sequelize');
 const sequelize = require('../database');
-const authMiddleware = require('../middleware/auth');
+const { authenticateToken } = require('../middleware/auth');
 
-router.use(authMiddleware);
+router.use(authenticateToken);
 
 // GET /api/reports/calls - Get call reports
 router.get('/calls', async (req, res) => {

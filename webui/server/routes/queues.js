@@ -1,9 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const { Queue, QueueMember, Peer } = require('../models');
-const authMiddleware = require('../middleware/auth');
+const { authenticateToken } = require('../middleware/auth');
 
-router.use(authMiddleware);
+router.use(authenticateToken);
 
 // GET /api/queues - List all queues
 router.get('/', async (req, res) => {
