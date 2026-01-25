@@ -21,6 +21,7 @@ import Contacts from './pages/Contacts'
 import Holidays from './pages/Holidays'
 import InboundRoutes from './pages/InboundRoutes'
 import OutboundRoutes from './pages/OutboundRoutes'
+import ClickToCall from './pages/ClickToCall'
 
 function PrivateRoute({ children }) {
   const { isAuthenticated, loading } = useAuth()
@@ -66,6 +67,7 @@ function App() {
             <Route path="holidays" element={<Holidays />} />
             <Route path="inbound-routes" element={<InboundRoutes />} />
             <Route path="outbound-routes" element={<OutboundRoutes />} />
+            <Route path="click-to-call" element={<ClickToCall />} />
           </Route>
         </Routes>
       </BrowserRouter>

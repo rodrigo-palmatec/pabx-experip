@@ -22,7 +22,8 @@ import {
   CalendarDays,
   ArrowDownToLine,
   ArrowUpFromLine,
-  BookUser
+  BookUser,
+  MousePointerClick
 } from 'lucide-react'
 import { useState } from 'react'
 
@@ -40,6 +41,7 @@ const navItems = [
   { path: '/inbound-routes', icon: ArrowDownToLine, label: 'Rotas Entrada' },
   { path: '/outbound-routes', icon: ArrowUpFromLine, label: 'Rotas Saída' },
   { path: '/calls', icon: PhoneCall, label: 'Chamadas' },
+  { path: '/click-to-call', icon: MousePointerClick, label: 'Click-to-Call' },
   { path: '/service-hours', icon: Clock, label: 'Horários' },
   { path: '/holidays', icon: CalendarDays, label: 'Feriados' },
   { path: '/blacklist', icon: Ban, label: 'Blacklist' },
