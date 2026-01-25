@@ -39,6 +39,7 @@ class ConfigManager {
   parseIniConfig(content) {
     const result = {};
     let currentSection = 'general';
+    let sectionCounter = {};
     
     const lines = content.split('\n');
     
@@ -53,9 +54,20 @@ class ConfigManager {
       // Nova seção
       const sectionMatch = trimmed.match(/^\[([^\]]+)\](.*)$/);
       if (sectionMatch) {
-        currentSection = sectionMatch[1];
+        const sectionName = sectionMatch[1];
         const inheritance = sectionMatch[2].replace(/[()!]/g, '').trim();
-        if (!result[currentSection]) {
+        
+        // Se a seção já existe, criar uma versão única para não sobrescrever
+        if (result[sectionName]) {
+          // Incrementar contador para esta seção
+          sectionCounter[sectionName] = (sectionCounter[sectionName] || 1) + 1;
+          currentSection = `${sectionName}#${sectionCounter[sectionName]}`;
+          result[currentSection] = { 
+            _originalName: sectionName,
+            _inherit: inheritance || null 
+          };
+        } else {
+          currentSection = sectionName;
           result[currentSection] = { _inherit: inheritance || null };
         }
         continue;
@@ -201,21 +213,40 @@ password = ${ext.password}
       const content = this.readConfig('pjsip.conf');
       const config = this.parseIniConfig(content);
       
-      const trunks = [];
+      logger.info(`Total de seções no pjsip.conf: ${Object.keys(config).length}`);
       
+      const trunks = [];
+      const trunkEndpoints = new Map();
+      
+      // Primeira passagem: identificar todas as seções de tronco endpoint
       for (const [section, values] of Object.entries(config)) {
-        if (section.startsWith('trunk-') && values.type === 'endpoint') {
-          trunks.push({
-            name: section,
-            host: values.outbound_proxy || '',
-            context: values.context || 'from-trunk',
-            ...values
-          });
+        const originalName = values._originalName || section;
+        
+        // Verificar se é um tronco (começa com trunk-)
+        if (originalName.startsWith('trunk-') && values.type === 'endpoint') {
+          // Usar o nome original sem sufixo
+          if (!trunkEndpoints.has(originalName)) {
+            trunkEndpoints.set(originalName, values);
+            logger.info(`Tronco encontrado: ${originalName}, type: ${values.type}`);
+          }
         }
+      }
+      
+      logger.info(`Total de troncos encontrados: ${trunkEndpoints.size}`);
+      
+      // Segunda passagem: coletar dados dos troncos
+      for (const [trunkName, endpoint] of trunkEndpoints) {
+        trunks.push({
+          name: trunkName,
+          host: endpoint.outbound_proxy || endpoint.from_domain || '',
+          context: endpoint.context || 'from-trunk',
+          ...endpoint
+        });
       }
       
       return trunks;
     } catch (err) {
+      logger.error(`Erro ao buscar troncos: ${err.message}`);
       return [];
     }
   }
