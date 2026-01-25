@@ -19,7 +19,7 @@ const ServiceHour = sequelize.define('ServiceHour', {
   monday: {
     type: DataTypes.TEXT,
     allowNull: true,
-    comment: 'JSON array of time ranges'
+    comment: 'JSON array of time ranges [{start: "08:00", end: "18:00"}]'
   },
   tuesday: {
     type: DataTypes.TEXT,
@@ -44,6 +44,30 @@ const ServiceHour = sequelize.define('ServiceHour', {
   sunday: {
     type: DataTypes.TEXT,
     allowNull: true
+  },
+  outOfHoursDestType: {
+    type: DataTypes.ENUM('hangup', 'queue', 'ivr', 'peer', 'voicemail', 'external', 'audio'),
+    defaultValue: 'hangup',
+    comment: 'Destino fora do horário de atendimento'
+  },
+  outOfHoursDestId: {
+    type: DataTypes.INTEGER,
+    allowNull: true
+  },
+  outOfHoursDestData: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+    comment: 'Dados adicionais (número externo, arquivo de áudio)'
+  },
+  outOfHoursAudio: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+    comment: 'Áudio a ser tocado fora do horário'
+  },
+  holidayGroupId: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    comment: 'Grupo de feriados vinculado'
   },
   enabled: {
     type: DataTypes.BOOLEAN,

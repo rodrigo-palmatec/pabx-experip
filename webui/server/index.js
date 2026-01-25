@@ -36,6 +36,7 @@ const clickToCallRoutes = require('./routes/clickToCall');
 const contactsRoutes = require('./routes/contacts');
 const callbacksRoutes = require('./routes/callbacks');
 const customRulesRoutes = require('./routes/customRules');
+const recordingsRoutes = require('./routes/recordings');
 
 const AmiManager = require('./services/ami');
 
@@ -104,6 +105,7 @@ app.use('/api/clickToCall', clickToCallRoutes);
 app.use('/api/contacts', contactsRoutes);
 app.use('/api/callbacks', callbacksRoutes);
 app.use('/api/customRules', customRulesRoutes);
+app.use('/api/recordings', recordingsRoutes);
 
 // Servir frontend em produção
 if (process.env.NODE_ENV === 'production') {

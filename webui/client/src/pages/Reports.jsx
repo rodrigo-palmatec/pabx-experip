@@ -1,10 +1,98 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { Play, Pause, Download, Volume2, X } from 'lucide-react'
 import api from '../services/api'
+
+function AudioPlayer({ src, onClose }) {
+  const audioRef = useRef(null)
+  const [playing, setPlaying] = useState(false)
+  const [currentTime, setCurrentTime] = useState(0)
+  const [duration, setDuration] = useState(0)
+
+  const togglePlay = () => {
+    if (audioRef.current) {
+      if (playing) {
+        audioRef.current.pause()
+      } else {
+        audioRef.current.play()
+      }
+      setPlaying(!playing)
+    }
+  }
+
+  const formatTime = (secs) => {
+    const mins = Math.floor(secs / 60)
+    const s = Math.floor(secs % 60)
+    return `${mins}:${String(s).padStart(2, '0')}`
+  }
+
+  const handleSeek = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect()
+    const percent = (e.clientX - rect.left) / rect.width
+    if (audioRef.current) {
+      audioRef.current.currentTime = percent * duration
+    }
+  }
+
+  return (
+    <div className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg p-4 z-50">
+      <div className="max-w-4xl mx-auto flex items-center gap-4">
+        <audio
+          ref={audioRef}
+          src={src}
+          onTimeUpdate={() => setCurrentTime(audioRef.current?.currentTime || 0)}
+          onLoadedMetadata={() => setDuration(audioRef.current?.duration || 0)}
+          onEnded={() => setPlaying(false)}
+        />
+        
+        <button
+          onClick={togglePlay}
+          className="p-3 bg-primary-600 text-white rounded-full hover:bg-primary-700"
+        >
+          {playing ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
+        </button>
+
+        <div className="flex-1">
+          <div
+            className="h-2 bg-gray-200 rounded-full cursor-pointer"
+            onClick={handleSeek}
+          >
+            <div
+              className="h-full bg-primary-600 rounded-full"
+              style={{ width: `${duration ? (currentTime / duration) * 100 : 0}%` }}
+            />
+          </div>
+          <div className="flex justify-between text-xs text-gray-500 mt-1">
+            <span>{formatTime(currentTime)}</span>
+            <span>{formatTime(duration)}</span>
+          </div>
+        </div>
+
+        <a
+          href={src}
+          download
+          className="p-2 text-gray-500 hover:text-primary-600 hover:bg-primary-50 rounded-lg"
+          title="Download"
+        >
+          <Download className="w-5 h-5" />
+        </a>
+
+        <button
+          onClick={onClose}
+          className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg"
+          title="Fechar"
+        >
+          <X className="w-5 h-5" />
+        </button>
+      </div>
+    </div>
+  )
+}
 
 export default function Reports() {
   const [loading, setLoading] = useState(true)
   const [calls, setCalls] = useState([])
   const [summary, setSummary] = useState(null)
+  const [currentAudio, setCurrentAudio] = useState(null)
   const [filters, setFilters] = useState({
     startDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     endDate: new Date().toISOString().split('T')[0],
@@ -166,6 +254,7 @@ export default function Reports() {
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Destino</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Duração</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Gravação</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -180,11 +269,24 @@ export default function Reports() {
                         {call.disposition || '-'}
                       </span>
                     </td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      {call.recordingfile ? (
+                        <button
+                          onClick={() => setCurrentAudio(`/api/recordings/${call.recordingfile}`)}
+                          className="p-2 text-primary-600 hover:bg-primary-50 rounded-lg"
+                          title="Ouvir gravação"
+                        >
+                          <Volume2 className="w-4 h-4" />
+                        </button>
+                      ) : (
+                        <span className="text-gray-300 text-xs">-</span>
+                      )}
+                    </td>
                   </tr>
                 ))}
                 {calls.length === 0 && (
                   <tr>
-                    <td colSpan="5" className="px-4 py-8 text-center text-gray-500">
+                    <td colSpan="6" className="px-4 py-8 text-center text-gray-500">
                       Nenhuma chamada encontrada
                     </td>
                   </tr>
@@ -219,6 +321,14 @@ export default function Reports() {
           </>
         )}
       </div>
+
+      {/* Audio Player */}
+      {currentAudio && (
+        <AudioPlayer 
+          src={currentAudio} 
+          onClose={() => setCurrentAudio(null)} 
+        />
+      )}
     </div>
   )
 }

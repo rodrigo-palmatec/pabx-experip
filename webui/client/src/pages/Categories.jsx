@@ -19,7 +19,9 @@ export default function Categories() {
     timeout: 60,
     timeRestrictionStart: '',
     timeRestrictionEnd: '',
-    overflowExtension: ''
+    overflowExtension: '',
+    allowStatusChange: true,
+    forceCallerid: false
   })
 
   useEffect(() => {
@@ -68,7 +70,9 @@ export default function Categories() {
       timeout: category.timeout || 60,
       timeRestrictionStart: category.timeRestrictionStart || '',
       timeRestrictionEnd: category.timeRestrictionEnd || '',
-      overflowExtension: category.overflowExtension || ''
+      overflowExtension: category.overflowExtension || '',
+      allowStatusChange: category.allowStatusChange ?? true,
+      forceCallerid: category.forceCallerid || false
     })
     setShowModal(true)
   }
@@ -98,7 +102,9 @@ export default function Categories() {
       timeout: 60,
       timeRestrictionStart: '',
       timeRestrictionEnd: '',
-      overflowExtension: ''
+      overflowExtension: '',
+      allowStatusChange: true,
+      forceCallerid: false
     })
   }
 
@@ -296,6 +302,24 @@ export default function Categories() {
                     className="rounded border-gray-300 text-blue-600"
                   />
                   <span className="ml-2 text-sm">Senha para Ligar</span>
+                </label>
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={formData.allowStatusChange}
+                    onChange={(e) => setFormData({...formData, allowStatusChange: e.target.checked})}
+                    className="rounded border-gray-300 text-blue-600"
+                  />
+                  <span className="ml-2 text-sm">Alterar Status</span>
+                </label>
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={formData.forceCallerid}
+                    onChange={(e) => setFormData({...formData, forceCallerid: e.target.checked})}
+                    className="rounded border-gray-300 text-blue-600"
+                  />
+                  <span className="ml-2 text-sm">Forçar BINA</span>
                 </label>
               </div>
 

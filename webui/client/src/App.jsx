@@ -22,6 +22,11 @@ import Holidays from './pages/Holidays'
 import InboundRoutes from './pages/InboundRoutes'
 import OutboundRoutes from './pages/OutboundRoutes'
 import ClickToCall from './pages/ClickToCall'
+import MusicOnHold from './pages/MusicOnHold'
+import Callbacks from './pages/Callbacks'
+import ExtensionPanel from './pages/ExtensionPanel'
+import CustomRules from './pages/CustomRules'
+import Recordings from './pages/Recordings'
 
 function PrivateRoute({ children }) {
   const { isAuthenticated, loading } = useAuth()
@@ -68,6 +73,10 @@ function App() {
             <Route path="inbound-routes" element={<InboundRoutes />} />
             <Route path="outbound-routes" element={<OutboundRoutes />} />
             <Route path="click-to-call" element={<ClickToCall />} />
+            <Route path="moh" element={<MusicOnHold />} />
+            <Route path="callbacks" element={<Callbacks />} />
+            <Route path="extension-panel" element={<ExtensionPanel />} />
+            <Route path="custom-rules" element={<CustomRules />} />
           </Route>
         </Routes>
       </BrowserRouter>

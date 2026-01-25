@@ -23,12 +23,18 @@ import {
   ArrowDownToLine,
   ArrowUpFromLine,
   BookUser,
-  MousePointerClick
+  MousePointerClick,
+  Music,
+  PhoneCallback,
+  Monitor,
+  Workflow,
+  Mic
 } from 'lucide-react'
 import { useState } from 'react'
 
 const navItems = [
   { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
+  { path: '/extension-panel', icon: Monitor, label: 'Painel de Ramais' },
   { path: '/extensions', icon: Phone, label: 'Ramais' },
   { path: '/categories', icon: Layers, label: 'Categorias' },
   { path: '/groups', icon: Users, label: 'Grupos' },
@@ -37,9 +43,13 @@ const navItems = [
   { path: '/queues', icon: GitBranch, label: 'Filas' },
   { path: '/ivrs', icon: MessageSquare, label: 'URA/IVR' },
   { path: '/conferences', icon: Video, label: 'Conferências' },
+  { path: '/moh', icon: Music, label: 'Músicas de Espera' },
+  { path: '/callbacks', icon: PhoneCallback, label: 'CallBack' },
   { path: '/trunks', icon: Network, label: 'Troncos' },
   { path: '/inbound-routes', icon: ArrowDownToLine, label: 'Rotas Entrada' },
   { path: '/outbound-routes', icon: ArrowUpFromLine, label: 'Rotas Saída' },
+  { path: '/custom-rules', icon: Workflow, label: 'Regras Customizadas' },
+  { path: '/recordings', icon: Mic, label: 'Gravações' },
   { path: '/calls', icon: PhoneCall, label: 'Chamadas' },
   { path: '/click-to-call', icon: MousePointerClick, label: 'Click-to-Call' },
   { path: '/service-hours', icon: Clock, label: 'Horários' },

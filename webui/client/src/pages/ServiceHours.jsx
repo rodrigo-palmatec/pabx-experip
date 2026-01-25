@@ -26,8 +26,15 @@ export default function ServiceHours() {
     friday: [],
     saturday: [],
     sunday: [],
+    outOfHoursDestType: 'hangup',
+    outOfHoursDestId: '',
+    outOfHoursDestData: '',
+    outOfHoursAudio: '',
     enabled: true
   })
+  const [queues, setQueues] = useState([])
+  const [ivrs, setIvrs] = useState([])
+  const [peers, setPeers] = useState([])
 
   useEffect(() => {
     fetchData()
@@ -35,10 +42,18 @@ export default function ServiceHours() {
 
   const fetchData = async () => {
     try {
-      const response = await api.get('/serviceHours')
-      setServiceHours(response.data)
+      const [shRes, qRes, iRes, pRes] = await Promise.all([
+        api.get('/serviceHours'),
+        api.get('/queues'),
+        api.get('/ivrs'),
+        api.get('/peers')
+      ])
+      setServiceHours(shRes.data)
+      setQueues(qRes.data)
+      setIvrs(iRes.data)
+      setPeers(pRes.data)
     } catch (error) {
-      console.error('Erro ao carregar horários:', error)
+      console.error('Erro ao carregar dados:', error)
     } finally {
       setLoading(false)
     }
@@ -80,6 +95,10 @@ export default function ServiceHours() {
       friday: parseRanges(item.friday),
       saturday: parseRanges(item.saturday),
       sunday: parseRanges(item.sunday),
+      outOfHoursDestType: item.outOfHoursDestType || 'hangup',
+      outOfHoursDestId: item.outOfHoursDestId || '',
+      outOfHoursDestData: item.outOfHoursDestData || '',
+      outOfHoursAudio: item.outOfHoursAudio || '',
       enabled: item.enabled !== false
     })
     setShowModal(true)
@@ -107,6 +126,10 @@ export default function ServiceHours() {
       friday: [],
       saturday: [],
       sunday: [],
+      outOfHoursDestType: 'hangup',
+      outOfHoursDestId: '',
+      outOfHoursDestData: '',
+      outOfHoursAudio: '',
       enabled: true
     })
   }
@@ -263,6 +286,98 @@ export default function ServiceHours() {
                     )}
                   </div>
                 ))}
+              </div>
+
+              {/* Destino Fora do Horário */}
+              <div className="border rounded-lg p-4 bg-orange-50">
+                <h3 className="font-medium text-orange-800 mb-3">Fora do Horário de Atendimento</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Destino</label>
+                    <select
+                      value={formData.outOfHoursDestType}
+                      onChange={(e) => setFormData({...formData, outOfHoursDestType: e.target.value, outOfHoursDestId: '', outOfHoursDestData: ''})}
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    >
+                      <option value="hangup">Desligar</option>
+                      <option value="queue">Fila</option>
+                      <option value="ivr">URA</option>
+                      <option value="peer">Ramal</option>
+                      <option value="voicemail">Caixa Postal</option>
+                      <option value="external">Número Externo</option>
+                      <option value="audio">Tocar Áudio</option>
+                    </select>
+                  </div>
+                  
+                  {formData.outOfHoursDestType === 'queue' && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Fila</label>
+                      <select
+                        value={formData.outOfHoursDestId}
+                        onChange={(e) => setFormData({...formData, outOfHoursDestId: e.target.value})}
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      >
+                        <option value="">Selecione...</option>
+                        {queues.map(q => <option key={q.id} value={q.id}>{q.name}</option>)}
+                      </select>
+                    </div>
+                  )}
+                  
+                  {formData.outOfHoursDestType === 'ivr' && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">URA</label>
+                      <select
+                        value={formData.outOfHoursDestId}
+                        onChange={(e) => setFormData({...formData, outOfHoursDestId: e.target.value})}
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      >
+                        <option value="">Selecione...</option>
+                        {ivrs.map(i => <option key={i.id} value={i.id}>{i.name}</option>)}
+                      </select>
+                    </div>
+                  )}
+                  
+                  {formData.outOfHoursDestType === 'peer' && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Ramal</label>
+                      <select
+                        value={formData.outOfHoursDestId}
+                        onChange={(e) => setFormData({...formData, outOfHoursDestId: e.target.value})}
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      >
+                        <option value="">Selecione...</option>
+                        {peers.map(p => <option key={p.id} value={p.id}>{p.username} - {p.name}</option>)}
+                      </select>
+                    </div>
+                  )}
+                  
+                  {formData.outOfHoursDestType === 'external' && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Número Externo</label>
+                      <input
+                        type="text"
+                        value={formData.outOfHoursDestData}
+                        onChange={(e) => setFormData({...formData, outOfHoursDestData: e.target.value})}
+                        placeholder="Ex: 11999999999"
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      />
+                    </div>
+                  )}
+                  
+                  {(formData.outOfHoursDestType === 'audio' || formData.outOfHoursDestType !== 'hangup') && (
+                    <div className="col-span-2">
+                      <label className="block text-sm font-medium text-gray-700">Áudio de Fora do Horário</label>
+                      <input
+                        type="text"
+                        value={formData.outOfHoursAudio}
+                        onChange={(e) => setFormData({...formData, outOfHoursAudio: e.target.value})}
+                        placeholder="Nome do arquivo de áudio (ex: fora-horario)"
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Áudio tocado antes de executar o destino</p>
+                    </div>
+                  )}
+                </div>
               </div>
 
               <label className="flex items-center">

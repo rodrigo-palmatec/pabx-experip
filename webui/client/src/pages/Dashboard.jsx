@@ -5,9 +5,12 @@ import {
   Network, 
   Server,
   Activity,
+  TrendingUp,
+  PhoneIncoming,
+  PhoneOutgoing,
+  PhoneMissed,
   Clock,
-  Cpu,
-  HardDrive
+  BarChart3
 } from 'lucide-react'
 import api from '../services/api'
 import socket, { connectSocket } from '../services/socket'
@@ -48,18 +51,22 @@ export default function Dashboard() {
   const [status, setStatus] = useState(null)
   const [extensions, setExtensions] = useState([])
   const [activeCalls, setActiveCalls] = useState([])
+  const [todayStats, setTodayStats] = useState(null)
   const [loading, setLoading] = useState(true)
 
   const fetchData = async () => {
     try {
-      const [statusRes, extRes, callsRes] = await Promise.all([
+      const today = new Date().toISOString().split('T')[0]
+      const [statusRes, extRes, callsRes, reportsRes] = await Promise.all([
         api.get('/system/status'),
         api.get('/extensions'),
-        api.get('/calls/active')
+        api.get('/calls/active'),
+        api.get(`/reports?startDate=${today}&endDate=${today}`)
       ])
       setStatus(statusRes.data)
       setExtensions(extRes.data)
       setActiveCalls(callsRes.data)
+      setTodayStats(reportsRes.data.summary)
     } catch (err) {
       console.error('Erro ao carregar dados:', err)
     } finally {
@@ -129,6 +136,40 @@ export default function Dashboard() {
           subtext={status?.asterisk?.version}
         />
       </div>
+
+      {/* Today's Stats */}
+      {todayStats && (
+        <div className="card">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <BarChart3 className="w-5 h-5 text-primary-600" />
+            Estatísticas de Hoje
+          </h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="text-center p-4 bg-blue-50 rounded-lg">
+              <PhoneIncoming className="w-8 h-8 text-blue-500 mx-auto mb-2" />
+              <div className="text-2xl font-bold text-blue-700">{todayStats.totalCalls || 0}</div>
+              <div className="text-sm text-blue-600">Total de Chamadas</div>
+            </div>
+            <div className="text-center p-4 bg-green-50 rounded-lg">
+              <PhoneCall className="w-8 h-8 text-green-500 mx-auto mb-2" />
+              <div className="text-2xl font-bold text-green-700">{todayStats.answered || 0}</div>
+              <div className="text-sm text-green-600">Atendidas</div>
+            </div>
+            <div className="text-center p-4 bg-red-50 rounded-lg">
+              <PhoneMissed className="w-8 h-8 text-red-500 mx-auto mb-2" />
+              <div className="text-2xl font-bold text-red-700">{todayStats.noAnswer || 0}</div>
+              <div className="text-sm text-red-600">Não Atendidas</div>
+            </div>
+            <div className="text-center p-4 bg-purple-50 rounded-lg">
+              <Clock className="w-8 h-8 text-purple-500 mx-auto mb-2" />
+              <div className="text-2xl font-bold text-purple-700">
+                {todayStats.avgDuration ? `${Math.round(todayStats.avgDuration)}s` : '0s'}
+              </div>
+              <div className="text-sm text-purple-600">Duração Média</div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* System Info */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

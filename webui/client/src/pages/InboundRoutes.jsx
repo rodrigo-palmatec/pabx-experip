@@ -4,6 +4,10 @@ import api from '../services/api'
 export default function InboundRoutes() {
   const [routes, setRoutes] = useState([])
   const [serviceHours, setServiceHours] = useState([])
+  const [queues, setQueues] = useState([])
+  const [ivrs, setIvrs] = useState([])
+  const [peers, setPeers] = useState([])
+  const [trunks, setTrunks] = useState([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [editing, setEditing] = useState(null)
@@ -11,11 +15,13 @@ export default function InboundRoutes() {
     name: '',
     did: '',
     cidPattern: '',
-    destinationType: 'extension',
-    destination: '',
+    destinationType: 'peer',
+    destinationId: '',
+    destinationData: '',
     serviceHourId: '',
-    afterHoursDestinationType: 'hangup',
-    afterHoursDestination: '',
+    outOfServiceDestType: 'hangup',
+    outOfServiceDestId: '',
+    outOfServiceDestData: '',
     priority: 0,
     enabled: true
   })
@@ -26,12 +32,20 @@ export default function InboundRoutes() {
 
   const fetchData = async () => {
     try {
-      const [routesRes, serviceHoursRes] = await Promise.all([
+      const [routesRes, serviceHoursRes, queuesRes, ivrsRes, peersRes, trunksRes] = await Promise.all([
         api.get('/inboundRoutes'),
-        api.get('/serviceHours')
+        api.get('/serviceHours'),
+        api.get('/queues'),
+        api.get('/ivrs'),
+        api.get('/peers'),
+        api.get('/trunks')
       ])
       setRoutes(routesRes.data)
       setServiceHours(serviceHoursRes.data)
+      setQueues(queuesRes.data)
+      setIvrs(ivrsRes.data)
+      setPeers(peersRes.data)
+      setTrunks(trunksRes.data)
     } catch (error) {
       console.error('Erro ao carregar dados:', error)
     } finally {
@@ -61,11 +75,13 @@ export default function InboundRoutes() {
       name: item.name || '',
       did: item.did || '',
       cidPattern: item.cidPattern || '',
-      destinationType: item.destinationType || 'extension',
-      destination: item.destination || '',
+      destinationType: item.destinationType || 'peer',
+      destinationId: item.destinationId || '',
+      destinationData: item.destinationData || '',
       serviceHourId: item.serviceHourId || '',
-      afterHoursDestinationType: item.afterHoursDestinationType || 'hangup',
-      afterHoursDestination: item.afterHoursDestination || '',
+      outOfServiceDestType: item.outOfServiceDestType || 'hangup',
+      outOfServiceDestId: item.outOfServiceDestId || '',
+      outOfServiceDestData: item.outOfServiceDestData || '',
       priority: item.priority || 0,
       enabled: item.enabled !== false
     })
@@ -88,24 +104,72 @@ export default function InboundRoutes() {
       name: '',
       did: '',
       cidPattern: '',
-      destinationType: 'extension',
-      destination: '',
+      destinationType: 'peer',
+      destinationId: '',
+      destinationData: '',
       serviceHourId: '',
-      afterHoursDestinationType: 'hangup',
-      afterHoursDestination: '',
+      outOfServiceDestType: 'hangup',
+      outOfServiceDestId: '',
+      outOfServiceDestData: '',
       priority: 0,
       enabled: true
     })
   }
 
+  const renderDestinationSelect = (type, value, onChange, prefix = '') => {
+    switch (type) {
+      case 'peer':
+        return (
+          <select value={value} onChange={onChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+            <option value="">Selecione um ramal</option>
+            {peers.map(p => <option key={p.id} value={p.id}>{p.username} - {p.name}</option>)}
+          </select>
+        )
+      case 'queue':
+        return (
+          <select value={value} onChange={onChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+            <option value="">Selecione uma fila</option>
+            {queues.map(q => <option key={q.id} value={q.id}>{q.name}</option>)}
+          </select>
+        )
+      case 'ivr':
+        return (
+          <select value={value} onChange={onChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+            <option value="">Selecione uma URA</option>
+            {ivrs.map(i => <option key={i.id} value={i.id}>{i.name}</option>)}
+          </select>
+        )
+      case 'external':
+        return (
+          <input
+            type="text"
+            value={value}
+            onChange={onChange}
+            placeholder="Número externo"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          />
+        )
+      case 'voicemail':
+        return (
+          <select value={value} onChange={onChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+            <option value="">Selecione um ramal</option>
+            {peers.map(p => <option key={p.id} value={p.id}>{p.username} - {p.name}</option>)}
+          </select>
+        )
+      default:
+        return null
+    }
+  }
+
   const destinationTypes = {
-    extension: 'Ramal',
+    peer: 'Ramal',
     queue: 'Fila',
     ivr: 'URA',
+    group: 'Grupo',
     conference: 'Conferência',
     voicemail: 'Voicemail',
-    hangup: 'Desligar',
-    external: 'Número Externo'
+    external: 'Número Externo',
+    hangup: 'Desligar'
   }
 
   if (loading) {
@@ -222,7 +286,7 @@ export default function InboundRoutes() {
                     <label className="block text-sm font-medium text-gray-700">Tipo</label>
                     <select
                       value={formData.destinationType}
-                      onChange={(e) => setFormData({...formData, destinationType: e.target.value})}
+                      onChange={(e) => setFormData({...formData, destinationType: e.target.value, destinationId: '', destinationData: ''})}
                       className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                     >
                       {Object.entries(destinationTypes).map(([key, label]) => (
@@ -230,16 +294,26 @@ export default function InboundRoutes() {
                       ))}
                     </select>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Destino</label>
-                    <input
-                      type="text"
-                      value={formData.destination}
-                      onChange={(e) => setFormData({...formData, destination: e.target.value})}
-                      placeholder="Ramal, fila, etc."
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                    />
-                  </div>
+                  {formData.destinationType !== 'hangup' && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Destino</label>
+                      {formData.destinationType === 'external' ? (
+                        <input
+                          type="text"
+                          value={formData.destinationData}
+                          onChange={(e) => setFormData({...formData, destinationData: e.target.value})}
+                          placeholder="Número externo"
+                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                        />
+                      ) : (
+                        renderDestinationSelect(
+                          formData.destinationType, 
+                          formData.destinationId,
+                          (e) => setFormData({...formData, destinationId: e.target.value})
+                        )
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -263,8 +337,8 @@ export default function InboundRoutes() {
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Tipo</label>
                       <select
-                        value={formData.afterHoursDestinationType}
-                        onChange={(e) => setFormData({...formData, afterHoursDestinationType: e.target.value})}
+                        value={formData.outOfServiceDestType}
+                        onChange={(e) => setFormData({...formData, outOfServiceDestType: e.target.value, outOfServiceDestId: '', outOfServiceDestData: ''})}
                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                       >
                         {Object.entries(destinationTypes).map(([key, label]) => (
@@ -272,15 +346,26 @@ export default function InboundRoutes() {
                         ))}
                       </select>
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">Destino</label>
-                      <input
-                        type="text"
-                        value={formData.afterHoursDestination}
-                        onChange={(e) => setFormData({...formData, afterHoursDestination: e.target.value})}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                      />
-                    </div>
+                    {formData.outOfServiceDestType !== 'hangup' && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Destino</label>
+                        {formData.outOfServiceDestType === 'external' ? (
+                          <input
+                            type="text"
+                            value={formData.outOfServiceDestData}
+                            onChange={(e) => setFormData({...formData, outOfServiceDestData: e.target.value})}
+                            placeholder="Número externo"
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                          />
+                        ) : (
+                          renderDestinationSelect(
+                            formData.outOfServiceDestType, 
+                            formData.outOfServiceDestId,
+                            (e) => setFormData({...formData, outOfServiceDestId: e.target.value})
+                          )
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

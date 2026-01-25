@@ -37,16 +37,29 @@ const Category = sequelize.define('Category', {
     defaultValue: false
   },
   monitor: {
-    type: DataTypes.ENUM('all', 'none', 'in', 'out'),
-    defaultValue: 'none'
+    type: DataTypes.ENUM('all', 'none', 'external'),
+    defaultValue: 'none',
+    comment: 'Gravar ligações: todas, nenhuma ou apenas externas'
   },
   callLimit: {
     type: DataTypes.INTEGER,
-    defaultValue: 1
+    defaultValue: 1,
+    comment: 'Ligações simultâneas'
+  },
+  allowStatusChange: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: true,
+    comment: 'Permite alterar status (online, ausente, ocupado)'
+  },
+  forceCallerid: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+    comment: 'Forçar BINA nas chamadas saintes'
   },
   timeout: {
     type: DataTypes.INTEGER,
-    defaultValue: 60
+    defaultValue: 60,
+    comment: 'Tempo de toque em segundos'
   },
   timeRestrictionStart: {
     type: DataTypes.STRING(8),

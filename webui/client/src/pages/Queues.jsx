@@ -10,13 +10,21 @@ export default function Queues() {
   const [formData, setFormData] = useState({
     name: '',
     extension: '',
+    description: '',
     strategy: 'ringall',
     timeout: 30,
     maxWaitTime: 300,
     wrapupTime: 0,
     announceFrequency: 60,
     mohClass: 'default',
-    memberIds: []
+    memberIds: [],
+    enabled: true,
+    callCenter: false,
+    monitor: 'none',
+    serviceHourId: '',
+    overflowDestType: 'hangup',
+    overflowDestId: '',
+    overflowDestData: ''
   })
 
   useEffect(() => {
@@ -59,13 +67,21 @@ export default function Queues() {
     setFormData({
       name: queue.name || '',
       extension: queue.extension || '',
+      description: queue.description || '',
       strategy: queue.strategy || 'ringall',
       timeout: queue.timeout || 30,
       maxWaitTime: queue.maxWaitTime || 300,
       wrapupTime: queue.wrapupTime || 0,
       announceFrequency: queue.announceFrequency || 60,
       mohClass: queue.mohClass || 'default',
-      memberIds: queue.Members?.map(m => m.peerId) || []
+      memberIds: queue.Members?.map(m => m.peerId) || [],
+      enabled: queue.enabled !== false,
+      callCenter: queue.callCenter || false,
+      monitor: queue.monitor || 'none',
+      serviceHourId: queue.serviceHourId || '',
+      overflowDestType: queue.overflowDestType || 'hangup',
+      overflowDestId: queue.overflowDestId || '',
+      overflowDestData: queue.overflowDestData || ''
     })
     setShowModal(true)
   }
@@ -85,13 +101,21 @@ export default function Queues() {
     setFormData({
       name: '',
       extension: '',
+      description: '',
       strategy: 'ringall',
       timeout: 30,
       maxWaitTime: 300,
       wrapupTime: 0,
       announceFrequency: 60,
       mohClass: 'default',
-      memberIds: []
+      memberIds: [],
+      enabled: true,
+      callCenter: false,
+      monitor: 'none',
+      serviceHourId: '',
+      overflowDestType: 'hangup',
+      overflowDestId: '',
+      overflowDestData: ''
     })
   }
 
@@ -242,6 +266,65 @@ export default function Queues() {
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                   />
                 </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Gravação</label>
+                  <select
+                    value={formData.monitor}
+                    onChange={(e) => setFormData({...formData, monitor: e.target.value})}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  >
+                    <option value="none">Não gravar</option>
+                    <option value="all">Gravar todas</option>
+                    <option value="external">Apenas externas</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Transbordo</label>
+                  <select
+                    value={formData.overflowDestType}
+                    onChange={(e) => setFormData({...formData, overflowDestType: e.target.value, overflowDestId: '', overflowDestData: ''})}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  >
+                    <option value="hangup">Desligar</option>
+                    <option value="queue">Outra Fila</option>
+                    <option value="ivr">URA</option>
+                    <option value="peer">Ramal</option>
+                    <option value="external">Número Externo</option>
+                  </select>
+                </div>
+                {formData.overflowDestType === 'external' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Número Externo</label>
+                    <input
+                      type="text"
+                      value={formData.overflowDestData}
+                      onChange={(e) => setFormData({...formData, overflowDestData: e.target.value})}
+                      placeholder="Ex: 11999999999"
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    />
+                  </div>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={formData.enabled}
+                    onChange={(e) => setFormData({...formData, enabled: e.target.checked})}
+                    className="rounded border-gray-300 text-blue-600"
+                  />
+                  <span className="ml-2 text-sm">Habilitada</span>
+                </label>
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={formData.callCenter}
+                    onChange={(e) => setFormData({...formData, callCenter: e.target.checked})}
+                    className="rounded border-gray-300 text-blue-600"
+                  />
+                  <span className="ml-2 text-sm">Fila Call Center</span>
+                </label>
               </div>
               
               <div>
