@@ -43,10 +43,14 @@ router.get('/:id', async (req, res) => {
 // POST /api/inboundRoutes - Create inbound route
 router.post('/', async (req, res) => {
   try {
-    const route = await InboundRoute.create({
-      ...req.body,
-      createdBy: req.user?.username || 'admin'
-    });
+    const data = { ...req.body };
+    // Convert empty strings to null for foreign keys
+    if (data.serviceHourId === '' || data.serviceHourId === undefined) {
+      data.serviceHourId = null;
+    }
+    data.createdBy = req.user?.username || 'admin';
+    
+    const route = await InboundRoute.create(data);
     res.status(201).json(route);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -60,10 +64,14 @@ router.put('/:id', async (req, res) => {
     if (!route) {
       return res.status(404).json({ error: 'Inbound route not found' });
     }
-    await route.update({
-      ...req.body,
-      updatedBy: req.user?.username || 'admin'
-    });
+    const data = { ...req.body };
+    // Convert empty strings to null for foreign keys
+    if (data.serviceHourId === '' || data.serviceHourId === undefined) {
+      data.serviceHourId = null;
+    }
+    data.updatedBy = req.user?.username || 'admin';
+    
+    await route.update(data);
     res.json(route);
   } catch (error) {
     res.status(500).json({ error: error.message });
