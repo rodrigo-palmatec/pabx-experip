@@ -48,6 +48,9 @@ const io = new Server(server, {
   }
 });
 
+// Trust proxy - necessário quando atrás de Nginx
+app.set('trust proxy', 1);
+
 // Middleware
 app.use(helmet({
   contentSecurityPolicy: false,
@@ -60,7 +63,9 @@ app.use(express.urlencoded({ extended: true }));
 // Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 100 // limite de 100 requisições por IP
+  max: 100, // limite de 100 requisições por IP
+  standardHeaders: true,
+  legacyHeaders: false
 });
 app.use('/api/', limiter);
 
