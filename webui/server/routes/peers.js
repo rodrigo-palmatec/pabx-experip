@@ -1,12 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const { Peer, Category, Profile, CostCenter, Group, PeerGroup, User } = require('../models');
-const ConfigService = require('../services/config');
+const configService = require('../services/config');
 const { authenticateToken } = require('../middleware/auth');
 
 router.use(authenticateToken);
-
-const configService = new ConfigService();
 
 // GET /api/peers - List all peers
 router.get('/', async (req, res) => {
