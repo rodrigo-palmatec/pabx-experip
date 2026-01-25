@@ -14,7 +14,15 @@ import {
   BarChart3,
   Ban,
   Layers,
-  Route
+  GitBranch,
+  UserCog,
+  Building2,
+  Video,
+  MessageSquare,
+  CalendarDays,
+  ArrowDownToLine,
+  ArrowUpFromLine,
+  BookUser
 } from 'lucide-react'
 import { useState } from 'react'
 
@@ -23,11 +31,19 @@ const navItems = [
   { path: '/extensions', icon: Phone, label: 'Ramais' },
   { path: '/categories', icon: Layers, label: 'Categorias' },
   { path: '/groups', icon: Users, label: 'Grupos' },
-  { path: '/queues', icon: Route, label: 'Filas' },
+  { path: '/profiles', icon: UserCog, label: 'Perfis' },
+  { path: '/cost-centers', icon: Building2, label: 'Centros de Custo' },
+  { path: '/queues', icon: GitBranch, label: 'Filas' },
+  { path: '/ivrs', icon: MessageSquare, label: 'URA/IVR' },
+  { path: '/conferences', icon: Video, label: 'Conferências' },
   { path: '/trunks', icon: Network, label: 'Troncos' },
+  { path: '/inbound-routes', icon: ArrowDownToLine, label: 'Rotas Entrada' },
+  { path: '/outbound-routes', icon: ArrowUpFromLine, label: 'Rotas Saída' },
   { path: '/calls', icon: PhoneCall, label: 'Chamadas' },
   { path: '/service-hours', icon: Clock, label: 'Horários' },
+  { path: '/holidays', icon: CalendarDays, label: 'Feriados' },
   { path: '/blacklist', icon: Ban, label: 'Blacklist' },
+  { path: '/contacts', icon: BookUser, label: 'Contatos' },
   { path: '/reports', icon: BarChart3, label: 'Relatórios' },
   { path: '/system', icon: Settings, label: 'Sistema' },
 ]

@@ -13,6 +13,14 @@ import Queues from './pages/Queues'
 import ServiceHours from './pages/ServiceHours'
 import Reports from './pages/Reports'
 import Blacklist from './pages/Blacklist'
+import Profiles from './pages/Profiles'
+import CostCenters from './pages/CostCenters'
+import Conferences from './pages/Conferences'
+import IVRs from './pages/IVRs'
+import Contacts from './pages/Contacts'
+import Holidays from './pages/Holidays'
+import InboundRoutes from './pages/InboundRoutes'
+import OutboundRoutes from './pages/OutboundRoutes'
 
 function PrivateRoute({ children }) {
   const { isAuthenticated, loading } = useAuth()
@@ -50,6 +58,14 @@ function App() {
             <Route path="service-hours" element={<ServiceHours />} />
             <Route path="reports" element={<Reports />} />
             <Route path="blacklist" element={<Blacklist />} />
+            <Route path="profiles" element={<Profiles />} />
+            <Route path="cost-centers" element={<CostCenters />} />
+            <Route path="conferences" element={<Conferences />} />
+            <Route path="ivrs" element={<IVRs />} />
+            <Route path="contacts" element={<Contacts />} />
+            <Route path="holidays" element={<Holidays />} />
+            <Route path="inbound-routes" element={<InboundRoutes />} />
+            <Route path="outbound-routes" element={<OutboundRoutes />} />
           </Route>
         </Routes>
       </BrowserRouter>
