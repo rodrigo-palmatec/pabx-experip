@@ -138,15 +138,23 @@ export default function ExtensionPanel() {
     fetchExtensions()
     const interval = setInterval(fetchExtensions, 10000)
     
-    // Usar mesmo socket do Dashboard
-    connectSocket()
-    socket.on('call-event', () => {
-      fetchExtensions() // Recarregar quando houver eventos de chamada
-    })
+    // Socket.IO opcional - se der erro, continua funcionando
+    try {
+      connectSocket()
+      socket.on('call-event', () => {
+        fetchExtensions() // Recarregar quando houver eventos de chamada
+      })
+    } catch (err) {
+      console.warn('Socket.IO não disponível, usando polling apenas')
+    }
 
     return () => {
       clearInterval(interval)
-      socket.off('call-event')
+      try {
+        socket.off('call-event')
+      } catch (err) {
+        // Ignorar erro ao limpar socket
+      }
     }
   }, [fetchExtensions])
 
