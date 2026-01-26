@@ -37,8 +37,8 @@ export default function InboundRoutes() {
         api.get('/serviceHours'),
         api.get('/queues'),
         api.get('/ivrs'),
-        api.get('/peers'),
-        api.get('/trunks')
+        api.get('/extension-status'), // API pública
+        api.get('/trunks-status')    // API pública
       ])
       setRoutes(routesRes.data)
       setServiceHours(serviceHoursRes.data)
@@ -122,7 +122,7 @@ export default function InboundRoutes() {
         return (
           <select value={value} onChange={onChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
             <option value="">Selecione um ramal</option>
-            {peers.map(p => <option key={p.id} value={p.id}>{p.username} - {p.name}</option>)}
+            {peers.map(p => <option key={p.extension} value={p.extension}>{p.extension} - {p.name}</option>)}
           </select>
         )
       case 'queue':
@@ -153,7 +153,7 @@ export default function InboundRoutes() {
         return (
           <select value={value} onChange={onChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
             <option value="">Selecione um ramal</option>
-            {peers.map(p => <option key={p.id} value={p.id}>{p.username} - {p.name}</option>)}
+            {peers.map(p => <option key={p.extension} value={p.extension}>{p.extension} - {p.name}</option>)}
           </select>
         )
       default:
