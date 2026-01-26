@@ -15,7 +15,6 @@ export default function InboundRoutes() {
     name: '',
     did: '',
     cidPattern: '',
-    trunkId: '',
     destinationType: 'peer',
     destinationId: '',
     destinationData: '',
@@ -76,7 +75,6 @@ export default function InboundRoutes() {
       name: item.name || '',
       did: item.did || '',
       cidPattern: item.cidPattern || '',
-      trunkId: item.trunkId || '',
       destinationType: item.destinationType || 'peer',
       destinationId: item.destinationId || '',
       destinationData: item.destinationData || '',
@@ -279,19 +277,6 @@ export default function InboundRoutes() {
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                   />
                 </div>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Tronco de Entrada</label>
-                <select
-                  value={formData.trunkId || ''}
-                  onChange={(e) => setFormData({...formData, trunkId: e.target.value})}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                >
-                  <option value="">Qualquer tronco</option>
-                  {trunks.map(t => <option key={t.name} value={t.name}>{t.name}</option>)}
-                </select>
-                <p className="text-xs text-gray-500 mt-1">Selecione o tronco específico ou deixe vazio para qualquer um</p>
               </div>
               
               <div className="border-t pt-4">

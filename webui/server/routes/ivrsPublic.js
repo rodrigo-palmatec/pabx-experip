@@ -1,11 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const { Ivr } = require('../models');
+const { IVR } = require('../models');
 
 // GET /api/ivrs-public - List all IVRs (público)
 router.get('/', async (req, res) => {
   try {
-    const ivrs = await Ivr.findAll({
+    const ivrs = await IVR.findAll({
       order: [['name', 'ASC']]
     });
     res.json(ivrs);
