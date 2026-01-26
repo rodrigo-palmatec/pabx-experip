@@ -20,8 +20,8 @@ router.get('/', async (req, res) => {
       }
     }
     
-    // Se não encontrar endpoints via AMI, buscar do config
-    if (endpoints.length === 0) {
+    // Forçar uso do configManager (mais confiável)
+    if (true || endpoints.length === 0) {
       const configManager = require('../services/config');
       const content = configManager.readConfig('pjsip.conf');
       const lines = content.split('\n');
