@@ -22,7 +22,7 @@ const ACTION_TYPES = {
   voicemail: { label: 'Caixa Postal', needsTarget: true }
 }
 
-function ConditionBuilder({ conditions, onChange }) {
+function ConditionBuilder({ conditions, onChange, trunks }) {
   const addCondition = () => {
     onChange([...conditions, { type: 'caller_id', operator: 'equals', value: '' }])
   }
@@ -73,13 +73,29 @@ function ConditionBuilder({ conditions, onChange }) {
                   <option key={op} value={op}>{op}</option>
                 ))}
               </select>
-              <input
-                type="text"
-                value={cond.value}
-                onChange={(e) => updateCondition(idx, 'value', e.target.value)}
-                placeholder="Valor"
-                className="input flex-1"
-              />
+              {cond.type === 'trunk' ? (
+                <select
+                  value={cond.value}
+                  onChange={(e) => updateCondition(idx, 'value', e.target.value)}
+                  className="input flex-1"
+                >
+                  <option value="">Selecione um tronco</option>
+                  {trunks.map(trunk => (
+                    <option key={trunk.name || trunk.endpoint} value={trunk.name || trunk.endpoint}>
+                      {trunk.name || trunk.endpoint}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <input
+                  type="text"
+                  value={cond.value}
+                  onChange={(e) => updateCondition(idx, 'value', e.target.value)}
+                  placeholder={cond.type === 'caller_id' ? 'Número de origem (ex: 48XXXXXXXX)' : 
+                           cond.type === 'called_number' ? 'Número destino (ex: 3000)' : 'Valor'}
+                  className="input flex-1"
+                />
+              )}
               <button
                 type="button"
                 onClick={() => removeCondition(idx)}
@@ -95,7 +111,7 @@ function ConditionBuilder({ conditions, onChange }) {
   )
 }
 
-function ActionBuilder({ actions, onChange }) {
+function ActionBuilder({ actions, onChange, peers, trunks }) {
   const addAction = () => {
     onChange([...actions, { type: 'route_to_queue', target: '' }])
   }
@@ -138,13 +154,38 @@ function ActionBuilder({ actions, onChange }) {
                 ))}
               </select>
               {ACTION_TYPES[action.type]?.needsTarget && (
-                <input
-                  type="text"
-                  value={action.target}
-                  onChange={(e) => updateAction(idx, 'target', e.target.value)}
-                  placeholder="Destino/Valor"
-                  className="input flex-1"
-                />
+                <>
+                  {action.type === 'route_to_peer' ? (
+                    <select
+                      value={action.target}
+                      onChange={(e) => updateAction(idx, 'target', e.target.value)}
+                      className="input flex-1"
+                    >
+                      <option value="">Selecione um ramal</option>
+                      {peers.map(peer => (
+                        <option key={peer.extension} value={peer.extension}>
+                          {peer.extension} - {peer.name}
+                        </option>
+                      ))}
+                    </select>
+                  ) : action.type === 'route_to_external' ? (
+                    <input
+                      type="text"
+                      value={action.target}
+                      onChange={(e) => updateAction(idx, 'target', e.target.value)}
+                      placeholder="Número externo (ex: 48XXXXXXXX)"
+                      className="input flex-1"
+                    />
+                  ) : (
+                    <input
+                      type="text"
+                      value={action.target}
+                      onChange={(e) => updateAction(idx, 'target', e.target.value)}
+                      placeholder="Destino/Valor"
+                      className="input flex-1"
+                    />
+                  )}
+                </>
               )}
               <button
                 type="button"
@@ -161,7 +202,7 @@ function ActionBuilder({ actions, onChange }) {
   )
 }
 
-function RuleModal({ isOpen, onClose, onSave, rule }) {
+function RuleModal({ isOpen, onClose, onSave, rule, peers, trunks }) {
   const [form, setForm] = useState({
     name: '',
     description: '',
@@ -256,11 +297,14 @@ function RuleModal({ isOpen, onClose, onSave, rule }) {
           <ConditionBuilder
             conditions={form.conditions}
             onChange={(conditions) => setForm({ ...form, conditions })}
+            trunks={trunks}
           />
 
           <ActionBuilder
             actions={form.actions}
             onChange={(actions) => setForm({ ...form, actions })}
+            peers={peers}
+            trunks={trunks}
           />
 
           <div className="flex items-center gap-2">
@@ -288,14 +332,13 @@ function RuleModal({ isOpen, onClose, onSave, rule }) {
       </div>
     </div>
   )
-}
-
 export default function CustomRules() {
   const [rules, setRules] = useState([])
   const [loading, setLoading] = useState(true)
-  const [modalOpen, setModalOpen] = useState(false)
-  const [editing, setEditing] = useState(null)
   const [error, setError] = useState('')
+  const [editing, setEditing] = useState(null)
+  const [peers, setPeers] = useState([])
+  const [trunks, setTrunks] = useState([])
   const [expandedRule, setExpandedRule] = useState(null)
 
   const fetchRules = async () => {
@@ -309,8 +352,30 @@ export default function CustomRules() {
     }
   }
 
+  const fetchPeers = async () => {
+    try {
+      // Usar API pública que funciona
+      const res = await api.get('/extension-status')
+      setPeers(res.data)
+    } catch (err) {
+      console.error('Erro ao carregar ramais:', err)
+    }
+  }
+
+  const fetchTrunks = async () => {
+    try {
+      // Buscar troncos do Asterisk
+      const res = await api.get('/trunks')
+      setTrunks(res.data || [])
+    } catch (err) {
+      console.error('Erro ao carregar troncos:', err)
+    }
+  }
+
   useEffect(() => {
     fetchRules()
+    fetchPeers()
+    fetchTrunks()
   }, [])
 
   const handleSave = async (data) => {
@@ -494,7 +559,10 @@ export default function CustomRules() {
         onClose={() => { setModalOpen(false); setEditing(null) }}
         onSave={handleSave}
         rule={editing}
+        peers={peers}
+        trunks={trunks}
       />
     </div>
   )
+}
 }
