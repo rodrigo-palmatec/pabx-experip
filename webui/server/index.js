@@ -190,14 +190,9 @@ async function updatePeerStatus(event) {
       }
     }
     
-    if (peerName) {
-      await Peer.update(
-        { sipRegStatus: status },
-        { where: { username: peerName } }
-      );
-    }
+    // Não atualiza mais o banco - usa API em tempo real
   } catch (error) {
-    console.error('Erro ao atualizar status do peer:', error);
+    console.error('Erro ao processar evento AMI:', error);
   }
 }
 
