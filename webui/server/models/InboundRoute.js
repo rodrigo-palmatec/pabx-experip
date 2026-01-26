@@ -21,6 +21,11 @@ const InboundRoute = sequelize.define('InboundRoute', {
     allowNull: true,
     comment: 'Caller ID pattern'
   },
+  trunkId: {
+    type: DataTypes.STRING(100),
+    allowNull: true,
+    comment: 'Trunk ID for specific routing'
+  },
   destinationType: {
     type: DataTypes.ENUM('peer', 'queue', 'ivr', 'group', 'conference', 'voicemail', 'external', 'hangup'),
     allowNull: false

@@ -38,7 +38,10 @@ router.get('/', async (req, res) => {
               !currentSection.includes('-aor') && 
               !currentSection.includes('-registration') && 
               !currentSection.includes('-identify')) {
-            trunkSections.push(currentSection);
+            // Evitar duplicatas
+            if (!trunkSections.includes(currentSection)) {
+              trunkSections.push(currentSection);
+            }
           }
         }
       }
