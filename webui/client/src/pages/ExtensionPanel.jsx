@@ -5,6 +5,7 @@ import {
   Circle, Pause, Coffee, AlertCircle
 } from 'lucide-react'
 import api from '../services/api'
+import { io } from 'socket.io-client'
 
 const STATUS_CONFIG = {
   AVAILABLE: { label: 'Disponível', color: 'bg-green-500', icon: Circle },
@@ -99,10 +100,12 @@ export default function ExtensionPanel() {
   const [filter, setFilter] = useState('all')
   const [autoRefresh, setAutoRefresh] = useState(true)
   const [lastUpdate, setLastUpdate] = useState(null)
+  const [socket, setSocket] = useState(null)
 
   const fetchExtensions = useCallback(async () => {
     try {
-      const res = await api.get('/peers')
+      // Usar rota de status para obter dados em tempo real
+      const res = await api.get('/status/peers')
       
       // Mapear status SIP para status do painel
       const mapped = res.data.map(peer => ({
@@ -115,7 +118,20 @@ export default function ExtensionPanel() {
       setLastUpdate(new Date())
       setError('')
     } catch (err) {
-      setError('Erro ao carregar ramais')
+      // Fallback para rota antiga se status falhar
+      try {
+        const fallbackRes = await api.get('/peers')
+        const mapped = fallbackRes.data.map(peer => ({
+          ...peer,
+          status: mapSipStatus(peer.sipRegStatus),
+          callInfo: null
+        }))
+        setExtensions(mapped)
+        setLastUpdate(new Date())
+        setError('')
+      } catch (fallbackErr) {
+        setError('Erro ao carregar ramais')
+      }
     } finally {
       setLoading(false)
     }
@@ -135,9 +151,30 @@ export default function ExtensionPanel() {
     fetchExtensions()
   }, [fetchExtensions])
 
+  // Configurar Socket.IO para atualizações em tempo real
+  useEffect(() => {
+    const newSocket = io()
+    setSocket(newSocket)
+
+    newSocket.on('peer-status', (event) => {
+      // Atualizar status do peer específico
+      setExtensions(prev => prev.map(ext => {
+        if (ext.username === event.peer?.replace('SIP/', '').replace('PJSIP/', '')) {
+          return {
+            ...ext,
+            status: mapSipStatus(event.status || event.state)
+          }
+        }
+        return ext
+      }))
+    })
+
+    return () => newSocket.close()
+  }, [])
+
   useEffect(() => {
     if (!autoRefresh) return
-    const interval = setInterval(fetchExtensions, 5000) // Atualiza a cada 5 segundos
+    const interval = setInterval(fetchExtensions, 10000) // Atualiza a cada 10 segundos (mais lento com Socket.IO)
     return () => clearInterval(interval)
   }, [autoRefresh, fetchExtensions])
 

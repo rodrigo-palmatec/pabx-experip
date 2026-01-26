@@ -37,6 +37,7 @@ const contactsRoutes = require('./routes/contacts');
 const callbacksRoutes = require('./routes/callbacks');
 const customRulesRoutes = require('./routes/customRules');
 const recordingsRoutes = require('./routes/recordings');
+const statusRoutes = require('./routes/status');
 
 const AmiManager = require('./services/ami');
 
@@ -106,6 +107,7 @@ app.use('/api/contacts', contactsRoutes);
 app.use('/api/callbacks', callbacksRoutes);
 app.use('/api/customRules', customRulesRoutes);
 app.use('/api/recordings', recordingsRoutes);
+app.use('/api/status', statusRoutes);
 
 // Servir frontend em produção
 if (process.env.NODE_ENV === 'production') {
@@ -135,9 +137,65 @@ ami.on('event', (event) => {
   }
   
   if (event.event === 'PeerStatus' || event.event === 'DeviceStateChange') {
+    // Atualizar status do peer no banco
+    updatePeerStatus(event);
     io.emit('peer-status', event);
   }
 });
+
+// Função para atualizar status do peer no banco
+async function updatePeerStatus(event) {
+  try {
+    const { Peer } = require('./models');
+    
+    let peerName = null;
+    let status = 'UNAVAILABLE';
+    
+    // Extrair nome do peer e status do evento
+    if (event.peer) {
+      peerName = event.peer.replace('SIP/', '').replace('PJSIP/', '');
+    } else if (event.channel) {
+      // Para eventos DeviceStateChange
+      const match = event.channel.match(/^(SIP|PJSIP)\/(.+?)-/);
+      if (match) {
+        peerName = match[2];
+      }
+    }
+    
+    if (event.status) {
+      const s = event.status.toUpperCase();
+      if (s.includes('OK') || s.includes('REACHABLE') || s === 'AVAILABLE') {
+        status = 'AVAILABLE';
+      } else if (s.includes('BUSY') || s.includes('INUSE')) {
+        status = 'BUSY';
+      } else if (s.includes('RINGING')) {
+        status = 'RINGING';
+      } else if (s.includes('PAUSED')) {
+        status = 'PAUSED';
+      }
+    }
+    
+    if (event.state) {
+      const s = event.state.toUpperCase();
+      if (s === 'ONLINE' || s === 'AVAILABLE') {
+        status = 'AVAILABLE';
+      } else if (s === 'BUSY' || s === 'INUSE') {
+        status = 'BUSY';
+      } else if (s === 'RINGING') {
+        status = 'RINGING';
+      }
+    }
+    
+    if (peerName) {
+      await Peer.update(
+        { sipRegStatus: status },
+        { where: { username: peerName } }
+      );
+    }
+  } catch (error) {
+    console.error('Erro ao atualizar status do peer:', error);
+  }
+}
 
 // Error handler
 app.use((err, req, res, next) => {
