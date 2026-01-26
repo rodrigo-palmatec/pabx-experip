@@ -30,6 +30,35 @@ DB_NAME="pabx_db"
 DB_USER="pabx_user"
 DB_PASS="pabx123"
 
+# Solicitar domínio ao usuário
+echo ""
+echo "=========================================="
+echo "  CONFIGURAÇÃO DO DOMÍNIO"
+echo "=========================================="
+echo ""
+read -p "🌐 Digite o domínio para o PABX (ex: pabx.suaempresa.com): " DOMAIN
+if [ -z "$DOMAIN" ]; then
+    DOMAIN="pabx.experip.cloud"
+    warn "Usando domínio padrão: $DOMAIN"
+fi
+
+echo ""
+echo "⚠️  IMPORTANTE: Verifique se o domínio '$DOMAIN' já está propagado"
+echo "   para o IP deste servidor antes de continuar!"
+echo ""
+echo "   Para verificar, execute em outro terminal:"
+echo "   nslookup $DOMAIN"
+echo "   ou"
+echo "   ping $DOMAIN"
+echo ""
+read -p "✅ O domínio '$DOMAIN' está propagado? (s/n): " DOMAIN_OK
+
+if [ "$DOMAIN_OK" != "s" ] && [ "$DOMAIN_OK" != "S" ]; then
+    error "Por favor, aguarde a propagação do domínio e execute o script novamente."
+fi
+
+log "Usando domínio: $DOMAIN"
+
 log "Iniciando instalação do PABX Experip..."
 
 # 1. Atualizar sistema
@@ -106,11 +135,11 @@ mkdir -p /var/spool/asterisk/monitor
 chown -R asterisk:asterisk /var/spool/asterisk/monitor 2>/dev/null || true
 
 # 9. Configurar Nginx
-log "Configurando Nginx..."
-cat > /etc/nginx/sites-available/pabx.experip.cloud << EOF
+log "Configurando Nginx para domínio: $DOMAIN..."
+cat > /etc/nginx/sites-available/$DOMAIN << EOF
 server {
     listen 80;
-    server_name pabx.experip.cloud;
+    server_name $DOMAIN;
     
     location /.well-known/acme-challenge/ {
         root /var/www/html;
@@ -123,11 +152,11 @@ server {
 
 server {
     listen 443 ssl http2;
-    server_name pabx.experip.cloud;
+    server_name $DOMAIN;
     
     # Certificados SSL (precisa ser gerado com certbot)
-    ssl_certificate /etc/letsencrypt/live/pabx.experip.cloud/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/pabx.experip.cloud/privkey.pem;
+    ssl_certificate /etc/letsencrypt/live/$DOMAIN/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/$DOMAIN/privkey.pem;
     
     # Configurações SSL
     ssl_protocols TLSv1.2 TLSv1.3;
@@ -170,7 +199,7 @@ server {
 EOF
 
 # Ativar site nginx
-ln -sf /etc/nginx/sites-available/pabx.experip.cloud /etc/nginx/sites-enabled/
+ln -sf /etc/nginx/sites-available/$DOMAIN /etc/nginx/sites-enabled/
 rm -f /etc/nginx/sites-enabled/default
 
 # Testar nginx
@@ -232,20 +261,30 @@ else
     error "❌ Falha ao iniciar Nginx"
 fi
 
-# 14. Informações finais
+# 14. Configurar SSL com Let's Encrypt
+log "Configurando certificado SSL..."
+echo ""
+echo "🔐 Configurando SSL com Let's Encrypt para $DOMAIN..."
+
+# Instalar certbot
+apt-get install -y certbot python3-certbot-nginx
+
+# Gerar certificado SSL
+certbot --nginx -d $DOMAIN --non-interactive --agree-tos --email admin@$DOMAIN --redirect
+
+# 15. Informações finais
 echo ""
 echo "=========================================="
 echo "  INSTALAÇÃO CONCLUÍDA COM SUCESSO!"
 echo "=========================================="
 echo ""
 echo "📡 Acesso ao sistema:"
-echo "   URL: http://pabx.experip.cloud"
+echo "   URL: https://$DOMAIN"
 echo "   Usuário: admin"
 echo "   Senha: admin123"
 echo ""
 echo "📋 Próximos passos:"
-echo "   1. Configure o certificado SSL:"
-echo "      sudo certbot --nginx -d pabx.experip.cloud"
+echo "   1. Configure o Asterisk AMI em /etc/asterisk/manager.conf"
 echo ""
 echo "   2. Configure o Asterisk AMI em /etc/asterisk/manager.conf"
 echo ""
@@ -255,7 +294,7 @@ echo ""
 echo "📁 Diretórios importantes:"
 echo "   Código: $INSTALL_DIR"
 echo "   Logs: sudo journalctl -u pabx-webui"
-echo "   Config Nginx: /etc/nginx/sites-available/pabx.experip.cloud"
+echo "   Config Nginx: /etc/nginx/sites-available/$DOMAIN"
 echo ""
 echo "🔄 Para atualizações futuras:"
 echo "   cd $INSTALL_DIR && git pull && npm run build && systemctl restart pabx-webui"
