@@ -34,7 +34,8 @@ const Peer = sequelize.define('Peer', {
   },
   sipRegStatus: {
     type: DataTypes.STRING(20),
-    defaultValue: 'UNAVAILABLE'
+    defaultValue: 'UNAVAILABLE',
+    field: 'sipRegStatus'
   },
   sipIp: {
     type: DataTypes.STRING(45),

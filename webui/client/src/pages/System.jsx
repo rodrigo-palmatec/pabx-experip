@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Settings, RefreshCw, Terminal, FileText, Server, AlertCircle, CheckCircle } from 'lucide-react'
+import { Settings, RefreshCw, Terminal, FileText, Server, AlertCircle, CheckCircle, RotateCcw } from 'lucide-react'
 import api from '../services/api'
 
 export default function System() {
@@ -11,6 +11,7 @@ export default function System() {
   const [reloading, setReloading] = useState(false)
   const [executing, setExecuting] = useState(false)
   const [message, setMessage] = useState({ type: '', text: '' })
+  const [updating, setUpdating] = useState(false)
 
   const fetchData = async () => {
     try {
@@ -60,6 +61,25 @@ export default function System() {
       setCommandOutput(`Erro: ${err.response?.data?.error || err.message}`)
     } finally {
       setExecuting(false)
+    }
+  }
+
+  const handleUpdateSystem = async () => {
+    setUpdating(true)
+    setMessage({ type: '', text: '' })
+    try {
+      // Fazer pull do repositório
+      await api.post('/system/update')
+      setMessage({ type: 'success', text: 'Sistema atualizado com sucesso! Reiniciando serviço...' })
+      
+      // Aguardar um pouco e recarregar página
+      setTimeout(() => {
+        window.location.reload()
+      }, 3000)
+    } catch (err) {
+      setMessage({ type: 'error', text: err.response?.data?.error || 'Erro ao atualizar sistema' })
+    } finally {
+      setUpdating(false)
     }
   }
 
@@ -146,6 +166,15 @@ export default function System() {
             >
               {reloading && <RefreshCw className="w-4 h-4 animate-spin" />}
               Recarregar Tudo
+            </button>
+            
+            <button
+              onClick={handleUpdateSystem}
+              disabled={updating}
+              className="btn-warning w-full flex items-center justify-center gap-2"
+            >
+              {updating && <RotateCcw className="w-4 h-4 animate-spin" />}
+              Atualizar Sistema
             </button>
             <div className="grid grid-cols-2 gap-2">
               <button
