@@ -366,8 +366,8 @@ export default function CustomRules() {
 
   const fetchTrunks = async () => {
     try {
-      // Buscar troncos do Asterisk
-      const res = await api.get('/trunks')
+      // Usar API pública de troncos
+      const res = await api.get('/trunks-status')
       setTrunks(res.data || [])
     } catch (err) {
       console.error('Erro ao carregar troncos:', err)

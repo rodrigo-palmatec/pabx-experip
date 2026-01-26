@@ -40,6 +40,7 @@ const recordingsRoutes = require('./routes/recordings');
 const statusRoutes = require('./routes/status');
 const systemUpdateRoutes = require('./routes/systemUpdate');
 const extensionStatusRoutes = require('./routes/extensionStatus');
+const trunksStatusRoutes = require('./routes/trunksStatus');
 
 const AmiManager = require('./services/ami');
 
@@ -112,6 +113,7 @@ app.use('/api/recordings', recordingsRoutes);
 app.use('/api/status', statusRoutes);
 app.use('/api/system/update', systemUpdateRoutes);
 app.use('/api/extension-status', extensionStatusRoutes);
+app.use('/api/trunks-status', trunksStatusRoutes);
 
 // Servir frontend em produção
 if (process.env.NODE_ENV === 'production') {
