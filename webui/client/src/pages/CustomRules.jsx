@@ -332,6 +332,8 @@ function RuleModal({ isOpen, onClose, onSave, rule, peers, trunks }) {
       </div>
     </div>
   )
+}
+
 export default function CustomRules() {
   const [rules, setRules] = useState([])
   const [loading, setLoading] = useState(true)
@@ -564,5 +566,4 @@ export default function CustomRules() {
       />
     </div>
   )
-}
 }
