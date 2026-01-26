@@ -104,14 +104,14 @@ export default function ExtensionPanel() {
 
   const fetchExtensions = useCallback(async () => {
     try {
-      // Usar mesma rota do Dashboard - /extensions
-      const res = await api.get('/extensions')
+      // Usar nova rota pública sem autenticação
+      const res = await api.get('/extension-status')
       
       // Mapear campo 'online' para status do painel
       const mapped = res.data.map(extension => ({
         ...extension,
         status: extension.online ? 'AVAILABLE' : 'UNAVAILABLE',
-        callInfo: null // Será preenchido com dados de chamadas ativas
+        callInfo: null
       }))
       
       setExtensions(mapped)
