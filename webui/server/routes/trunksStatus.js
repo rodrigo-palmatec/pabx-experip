@@ -32,7 +32,12 @@ router.get('/', async (req, res) => {
         const trimmed = line.trim();
         if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
           currentSection = trimmed.slice(1, -1);
-          if (currentSection.startsWith('trunk-') && !currentSection.includes('-auth') && !currentSection.includes('-aor')) {
+          // Apenas seções principais de tronco (sem -auth, -aor, -registration, -identify)
+          if (currentSection.startsWith('trunk-') && 
+              !currentSection.includes('-auth') && 
+              !currentSection.includes('-aor') && 
+              !currentSection.includes('-registration') && 
+              !currentSection.includes('-identify')) {
             trunkSections.push(currentSection);
           }
         }
