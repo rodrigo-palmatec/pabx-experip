@@ -51,6 +51,9 @@ router.get('/', async (req, res) => {
       return;
     }
     
+    // Debug: Mostrar todos os endpoints
+    console.log('Todos os endpoints:', endpoints.map(e => ({ name: e.object_name, type: e.object_type })));
+    
     // Filtrar apenas troncos (geralmente começam com "trunk-")
     const trunks = endpoints.filter(endpoint => 
       endpoint.object_name && endpoint.object_name.startsWith('trunk-')
