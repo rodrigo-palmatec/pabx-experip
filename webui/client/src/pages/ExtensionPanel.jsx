@@ -107,12 +107,34 @@ export default function ExtensionPanel() {
       // Usar nova rota pública sem autenticação
       const res = await api.get('/extension-status')
       
+      // Buscar chamadas ativas para mostrar em ligação
+      let activeCalls = []
+      try {
+        const callsRes = await api.get('/calls/active')
+        activeCalls = callsRes.data || []
+      } catch (err) {
+        // Se falhar, continua sem dados de chamadas
+      }
+      
       // Mapear campo 'online' para status do painel
-      const mapped = res.data.map(extension => ({
-        ...extension,
-        status: extension.online ? 'AVAILABLE' : 'UNAVAILABLE',
-        callInfo: null
-      }))
+      const mapped = res.data.map(extension => {
+        // Verificar se está em chamada ativa
+        const activeCall = activeCalls.find(call => 
+          call.caller === extension.extension || 
+          call.callee === extension.extension
+        )
+        
+        return {
+          ...extension,
+          username: extension.extension, // Garantir que username seja o número
+          status: activeCall ? 'BUSY' : (extension.online ? 'AVAILABLE' : 'UNAVAILABLE'),
+          callInfo: activeCall ? {
+            number: activeCall.caller === extension.extension ? activeCall.callee : activeCall.caller,
+            direction: activeCall.caller === extension.extension ? 'outbound' : 'inbound',
+            duration: activeCall.duration || '0s'
+          } : null
+        }
+      })
       
       setExtensions(mapped)
       setLastUpdate(new Date())
