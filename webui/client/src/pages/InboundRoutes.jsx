@@ -34,12 +34,12 @@ export default function InboundRoutes() {
   const fetchData = async () => {
     try {
       const [routesRes, serviceHoursRes, queuesRes, ivrsRes, peersRes, trunksRes] = await Promise.all([
-        api.get('/inboundRoutes'),
-        api.get('/serviceHours'),
-        api.get('/queues'),
-        api.get('/ivrs'),
-        api.get('/extension-status'), // API pública
-        api.get('/trunks-status')    // API pública
+        api.get('/inbound-routes-public'),     // API pública
+        api.get('/service-hours-public'),       // API pública
+        api.get('/queues-public'),              // API pública
+        api.get('/ivrs-public'),                // API pública
+        api.get('/extension-status'),           // API pública
+        api.get('/trunks-status')               // API pública
       ])
       setRoutes(routesRes.data)
       setServiceHours(serviceHoursRes.data)
