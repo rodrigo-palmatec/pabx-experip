@@ -40,31 +40,31 @@ class ConfigManager {
     const result = {};
     let currentSection = 'general';
     let sectionCounter = {};
-    
+
     const lines = content.split('\n');
-    
+
     for (const line of lines) {
       const trimmed = line.trim();
-      
+
       // Ignorar comentários e linhas vazias
       if (!trimmed || trimmed.startsWith(';') || trimmed.startsWith('#')) {
         continue;
       }
-      
+
       // Nova seção
       const sectionMatch = trimmed.match(/^\[([^\]]+)\](.*)$/);
       if (sectionMatch) {
         const sectionName = sectionMatch[1];
         const inheritance = sectionMatch[2].replace(/[()!]/g, '').trim();
-        
+
         // Se a seção já existe, criar uma versão única para não sobrescrever
         if (result[sectionName]) {
           // Incrementar contador para esta seção
           sectionCounter[sectionName] = (sectionCounter[sectionName] || 1) + 1;
           currentSection = `${sectionName}#${sectionCounter[sectionName]}`;
-          result[currentSection] = { 
+          result[currentSection] = {
             _originalName: sectionName,
-            _inherit: inheritance || null 
+            _inherit: inheritance || null
           };
         } else {
           currentSection = sectionName;
@@ -72,27 +72,27 @@ class ConfigManager {
         }
         continue;
       }
-      
+
       // Chave = valor
       const keyValueMatch = trimmed.match(/^([^=]+)=(.*)$/);
       if (keyValueMatch) {
         const key = keyValueMatch[1].trim();
         const value = keyValueMatch[2].trim();
-        
+
         if (!result[currentSection]) {
           result[currentSection] = {};
         }
         result[currentSection][key] = value;
       }
     }
-    
+
     return result;
   }
 
   buildIniConfig(config) {
     let content = '; Gerado automaticamente pelo PABX Experip WebUI\n';
     content += `; ${new Date().toISOString()}\n\n`;
-    
+
     for (const [section, values] of Object.entries(config)) {
       const inherit = values._inherit;
       if (inherit) {
@@ -100,7 +100,7 @@ class ConfigManager {
       } else {
         content += `[${section}]\n`;
       }
-      
+
       for (const [key, value] of Object.entries(values)) {
         if (key !== '_inherit') {
           content += `${key} = ${value}\n`;
@@ -108,7 +108,7 @@ class ConfigManager {
       }
       content += '\n';
     }
-    
+
     return content;
   }
 
@@ -116,18 +116,20 @@ class ConfigManager {
   getExtensions() {
     try {
       const content = this.readConfig('pjsip.conf');
+      logger.info(`Lendo pjsip.conf: ${content.length} bytes`);
       const config = this.parseIniConfig(content);
-      
+      logger.info(`Seções no pjsip.conf: ${Object.keys(config).length}`);
+
       const extensions = [];
       const processed = new Set();
-      
+
       for (const [section, values] of Object.entries(config)) {
         // Detectar endpoints: tem type=endpoint OU herda de endpoint-template
         const isEndpoint = values.type === 'endpoint' || values._inherit === 'endpoint-template';
-        
+
         if (isEndpoint && !section.includes('-') && !section.includes('template') && !processed.has(section)) {
           processed.add(section);
-          
+
           // Extrair nome do callerid se existir
           let name = section;
           if (values.callerid) {
@@ -136,7 +138,7 @@ class ConfigManager {
               name = match[1];
             }
           }
-          
+
           extensions.push({
             extension: section,
             name: name,
@@ -147,16 +149,18 @@ class ConfigManager {
           });
         }
       }
-      
+
+      logger.info(`Ramais encontrados: ${extensions.length}`);
       return extensions;
     } catch (err) {
+      logger.error('Erro ao buscar extensões:', err);
       return [];
     }
   }
 
   addExtension(ext) {
     const content = this.readConfig('pjsip.conf');
-    
+
     const newConfig = `
 ; Ramal ${ext.extension}
 [${ext.extension}](endpoint-template)
@@ -171,10 +175,10 @@ password = ${ext.password}
 
 [${ext.extension}](aor-template)
 `;
-    
+
     const updatedContent = content + newConfig;
     this.writeConfig('pjsip.conf', updatedContent);
-    
+
     return true;
   }
 
@@ -183,27 +187,27 @@ password = ${ext.password}
     const lines = content.split('\n');
     const newLines = [];
     let skip = false;
-    
+
     for (const line of lines) {
       const trimmed = line.trim();
-      
+
       // Detectar início de seção do ramal
-      if (trimmed.startsWith(`[${extension}]`) || 
-          trimmed.startsWith(`[${extension}-auth]`)) {
+      if (trimmed.startsWith(`[${extension}]`) ||
+        trimmed.startsWith(`[${extension}-auth]`)) {
         skip = true;
         continue;
       }
-      
+
       // Nova seção - parar de pular
       if (trimmed.startsWith('[') && !trimmed.startsWith(`[${extension}`)) {
         skip = false;
       }
-      
+
       if (!skip) {
         newLines.push(line);
       }
     }
-    
+
     this.writeConfig('pjsip.conf', newLines.join('\n'));
     return true;
   }
@@ -213,16 +217,16 @@ password = ${ext.password}
     try {
       const content = this.readConfig('pjsip.conf');
       const config = this.parseIniConfig(content);
-      
+
       logger.info(`Total de seções no pjsip.conf: ${Object.keys(config).length}`);
-      
+
       const trunks = [];
       const trunkEndpoints = new Map();
-      
+
       // Primeira passagem: identificar todas as seções de tronco endpoint
       for (const [section, values] of Object.entries(config)) {
         const originalName = values._originalName || section;
-        
+
         // Verificar se é um tronco (começa com trunk-)
         if (originalName.startsWith('trunk-') && values.type === 'endpoint') {
           // Usar o nome original sem sufixo
@@ -232,9 +236,9 @@ password = ${ext.password}
           }
         }
       }
-      
+
       logger.info(`Total de troncos encontrados: ${trunkEndpoints.size}`);
-      
+
       // Segunda passagem: coletar dados dos troncos
       for (const [trunkName, endpoint] of trunkEndpoints) {
         trunks.push({
@@ -244,7 +248,7 @@ password = ${ext.password}
           ...endpoint
         });
       }
-      
+
       return trunks;
     } catch (err) {
       logger.error(`Erro ao buscar troncos: ${err.message}`);
