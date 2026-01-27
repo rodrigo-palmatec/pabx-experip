@@ -77,7 +77,6 @@ class DialplanGenerator {
     let context = '';
 
     routes.forEach((route, index) => {
-      // ... existing inbound routing logic ...
       const exten = this.generateExtensionPattern(route);
       const priority = 1;
 
@@ -86,7 +85,7 @@ exten => ${exten},1,NoOp(Processando rota entrada: ${route.name})
 `;
 
       if (route.trunkId) {
-        context += `same => n,ExecIf($["${CHANNEL(peername)}" != "${route.trunkId}"]?Return())
+        context += `same => n,ExecIf($["\${CHANNEL(peername)}" != "${route.trunkId}"]?Return())
 `;
       }
 
@@ -134,7 +133,6 @@ exten => ${exten},1,NoOp(Processando rota entrada: ${route.name})
 
     routes.forEach(route => {
       // pattern pode ser algo como X., _0X., etc.
-      // Asterisk pattern matching
       let pattern = route.pattern;
 
       context += `; Rota de Saída: ${route.name}
@@ -142,37 +140,38 @@ exten => ${pattern},1,NoOp(Processando rota saida: ${route.name})
 `;
 
       // Manipulação de dígitos
-      let dialStr = '${EXTEN}';
+      let dialStr = '\\${EXTEN}';
 
-      // Remove prefixo (strip)
-      if (route.removePrefix && route.removePrefix > 0) {
-        dialStr = `\${EXTEN:${route.removePrefix}}`;
-      }
-
-      // Adiciona prefixo (prepend)
-      if (route.addPrefix && route.addPrefix.length > 0) {
-        dialStr = `${route.addPrefix}${dialStr}`;
-      }
-
-      // Discar
-      if (route.Trunk) {
-        // Supondo PJSIP endpoint
-        // Se nome do tronco já tem trunk-, usa, senão adiciona
-        // A rota salva trunkId ou trunk Name? O model tem TrunkId.
-        // O nome do endpoint no PJSIP deve ser consistente.
-        const tech = 'PJSIP';
-        const trunkName = route.Trunk.name;
-        context += `same => n,Dial(${tech}/${trunkName}/sip:${dialStr}@${route.Trunk.host || route.Trunk.domain},60,T)
-same => n,Hangup()
-`;
-      } else {
-        context += `same => n,NoOp(Erro: Rota sem tronco valido)
-same => n,Hangup()
-`;
-      }
-      context += '\n';
+      // Remove prefixo (strip) - campo 'prefix' no banco contém os dígitos a remover (ex: "0")
+      // Devemos usar o comprimento da string para o slice: ${EXTEN:len}
+      if (route.prefix && route.prefix.length > 0) {
+        dialStr = `\\${EXTEN:${ route.prefix.length }
+      } `;
+        }
+        
+        // Adiciona prefixo (prepend) - campo 'prepend' no banco
+        if (route.prepend && route.prepend.length > 0) {
+            dialStr = `${ route.prepend }${ dialStr } `;
+        }
+        
+        // Discar
+        if (route.Trunk) {
+            const tech = 'PJSIP'; 
+            const trunkName = route.Trunk.name;
+            // host do tronco ou domain da conta
+            const host = route.Trunk.host || route.Trunk.domain;
+            
+            context += `same => n, Dial(${ tech } / ${ trunkName } / sip: ${ dialStr }@${ host }, 60, T)
+      same => n, Hangup()
+        `;
+        } else {
+            context += `same => n, NoOp(Erro: Rota sem tronco valido)
+      same => n, Hangup()
+        `;
+        }
+        context += '\n';
     });
-
+    
     return context;
   }
 
@@ -207,14 +206,14 @@ same => n,Hangup()
 
     // Horário
     if (serviceHour.openTime && serviceHour.closeTime) {
-      timeCondition += `${serviceHour.openTime}-${serviceHour.closeTime}`;
+      timeCondition += `${ serviceHour.openTime } -${ serviceHour.closeTime } `;
     } else {
       timeCondition += '*';
     }
 
     // Dias da semana
     if (serviceHour.weekdays) {
-      timeCondition += `,${serviceHour.weekdays}`;
+      timeCondition += `, ${ serviceHour.weekdays } `;
     } else {
       timeCondition += ',*';
     }
@@ -231,20 +230,20 @@ same => n,Hangup()
   generateDestination(route) {
     switch (route.destinationType) {
       case 'peer':
-        return `Goto(from-internal,${route.destinationData || route.destinationId},1)`;
+        return `Goto(from - internal, ${ route.destinationData || route.destinationId }, 1)`;
 
       case 'queue':
-        return `Goto(from-queue,${route.destinationId},1)`;
+        return `Goto(from - queue, ${ route.destinationId }, 1)`;
 
       case 'ivr':
-        return `Goto(from-ivr,${route.destinationId},1)`;
+        return `Goto(from - ivr, ${ route.destinationId }, 1)`;
 
       case 'external':
         // Formato: Dial(SIP/operadora/${numero})
-        return `Dial(SIP/trunk-operadora/${route.destinationData})`;
+        return `Dial(SIP / trunk - operadora / ${ route.destinationData })`;
 
       case 'voicemail':
-        return `Voicemail(${route.destinationData || route.destinationId},u)`;
+        return `Voicemail(${ route.destinationData || route.destinationId }, u)`;
 
       case 'hangup':
         return 'Hangup()';
@@ -275,7 +274,7 @@ same => n,Hangup()
       const { stdout, stderr } = await execAsync('asterisk -rx "dialplan show from-trunk-custom"');
 
       if (stderr && !stderr.includes('No such context')) {
-        throw new Error(`Erro no dialplan: ${stderr}`);
+        throw new Error(`Erro no dialplan: ${ stderr } `);
       }
 
       return { valid: true, output: stdout };
