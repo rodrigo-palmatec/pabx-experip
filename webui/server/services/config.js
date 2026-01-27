@@ -163,6 +163,7 @@ class ConfigManager {
 auth = ${ext.extension}-auth
 aors = ${ext.extension}
 callerid = "${ext.name}" <${ext.extension}>
+context = ${ext.context || 'from-internal'}
 
 [${ext.extension}-auth](auth-template)
 username = ${ext.extension}

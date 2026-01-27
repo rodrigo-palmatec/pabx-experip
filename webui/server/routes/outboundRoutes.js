@@ -43,7 +43,7 @@ router.get('/:id', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const { name, pattern, trunkId } = req.body;
-    
+
     if (!name || !pattern || !trunkId) {
       return res.status(400).json({ error: 'Name, pattern and trunkId are required' });
     }
@@ -52,11 +52,15 @@ router.post('/', async (req, res) => {
       ...req.body,
       createdBy: req.user?.username || 'admin'
     });
-    
+
     await route.reload({
       include: [{ model: Trunk, as: 'Trunk', attributes: ['id', 'name'] }]
     });
-    
+
+    // Regenerar dialplan
+    const dialplanGenerator = new (require('../services/dialplanGenerator'))();
+    await dialplanGenerator.generateDialplan();
+
     res.status(201).json(route);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -74,11 +78,15 @@ router.put('/:id', async (req, res) => {
       ...req.body,
       updatedBy: req.user?.username || 'admin'
     });
-    
+
     await route.reload({
       include: [{ model: Trunk, as: 'Trunk', attributes: ['id', 'name'] }]
     });
-    
+
+    // Regenerar dialplan
+    const dialplanGenerator = new (require('../services/dialplanGenerator'))();
+    await dialplanGenerator.generateDialplan();
+
     res.json(route);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -93,6 +101,11 @@ router.delete('/:id', async (req, res) => {
       return res.status(404).json({ error: 'Outbound route not found' });
     }
     await route.destroy();
+
+    // Regenerar dialplan
+    const dialplanGenerator = new (require('../services/dialplanGenerator'))();
+    await dialplanGenerator.generateDialplan();
+
     res.json({ success: 'Outbound route deleted successfully' });
   } catch (error) {
     res.status(500).json({ error: error.message });
