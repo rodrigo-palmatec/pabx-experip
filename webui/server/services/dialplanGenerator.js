@@ -1,3 +1,4 @@
+// v2 - Fixed Syntax Errors
 const fs = require('fs').promises;
 const path = require('path');
 const { exec } = require('child_process');
@@ -5,8 +6,6 @@ const { promisify } = require('util');
 const execAsync = promisify(exec);
 
 const logger = require('../utils/logger');
-
-// Force update
 
 class DialplanGenerator {
   constructor() {
