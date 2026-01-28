@@ -1,4 +1,3 @@
-// v3 - Fixed Syntax Errors (Surgical)
 const fs = require('fs').promises;
 const path = require('path');
 const { exec } = require('child_process');
@@ -83,28 +82,24 @@ include => from-trunk-custom
     routes.forEach((route, index) => {
       const exten = this.generateExtensionPattern(route);
 
-      context += `; Rota de Entrada: ${route.name} (ID: ${route.id})
-exten => ${exten},1,NoOp(Processando rota entrada: ${route.name})
-`;
+      context += `; Rota de Entrada: ${route.name} (ID: ${route.id})\n`;
+      context += `exten => ${exten},1,NoOp(Processando rota entrada: ${route.name})\n`;
 
       if (route.trunkId) {
-        context += `same => n,ExecIf($["\${CHANNEL(peername)}" != "${route.trunkId}"]?Return())
-`;
+        const channelPeername = '${CHANNEL(peername)}';
+        context += `same => n,ExecIf($["${channelPeername}" != "${route.trunkId}"]?Return())\n`;
       }
 
       if (route.serviceHourId && route.ServiceHour) {
         const timeCondition = this.generateTimeCondition(route.ServiceHour);
-        context += `same => n,GotoIfTime(${timeCondition}?destino_${route.id}:fora_horario_${route.id})
-`;
+        context += `same => n,GotoIfTime(${timeCondition}?destino_${route.id}:fora_horario_${route.id})\n`;
       } else {
-        context += `same => n,Goto(destino_${route.id})
-`;
+        context += `same => n,Goto(destino_${route.id})\n`;
       }
 
       // Destino
       const destination = this.generateDestination(route);
-      context += `same => n(destino_${route.id}),${destination}
-`;
+      context += `same => n(destino_${route.id}),${destination}\n`;
 
       // Fora de horário
       if (route.serviceHourId) {
@@ -114,11 +109,9 @@ exten => ${exten},1,NoOp(Processando rota entrada: ${route.name})
             destinationId: route.outOfServiceDestId,
             destinationData: route.outOfServiceDestData
           });
-          context += `same => n(fora_horario_${route.id}),${outOfServiceDestination}
-`;
+          context += `same => n(fora_horario_${route.id}),${outOfServiceDestination}\n`;
         } else {
-          context += `same => n(fora_horario_${route.id}),Hangup()
-`;
+          context += `same => n(fora_horario_${route.id}),Hangup()\n`;
         }
       }
 
@@ -129,27 +122,22 @@ exten => ${exten},1,NoOp(Processando rota entrada: ${route.name})
   }
 
   generateOutboundContext(routes) {
-    let context = `
-[outbound-all-routes]
-; Contexto incluso no from-internal para permitir saídas
-`;
+    let context = '\n[outbound-all-routes]\n; Contexto incluso no from-internal para permitir saídas\n';
 
     routes.forEach(route => {
       let pattern = route.pattern;
 
-      context += `; Rota de Saída: ${route.name}
-exten => ${pattern},1,NoOp(Processando rota saida: ${route.name})
-`;
+      context += `; Rota de Saída: ${route.name}\n`;
+      context += `exten => ${pattern},1,NoOp(Processando rota saida: ${route.name})\n`;
 
-      let dialStr = '\\${EXTEN}';
+      let dialStr = '${EXTEN}';
 
       if (route.prefix && route.prefix.length > 0) {
-        dialStr = `\\${EXTEN:${ route.prefix.length }
-      } `;
+        dialStr = '${EXTEN:' + route.prefix.length + '}';
       }
 
       if (route.prepend && route.prepend.length > 0) {
-        dialStr = `${ route.prepend }${ dialStr } `;
+        dialStr = route.prepend + dialStr;
       }
 
       if (route.Trunk) {
@@ -157,13 +145,11 @@ exten => ${pattern},1,NoOp(Processando rota saida: ${route.name})
         const trunkName = route.Trunk.name;
         const host = route.Trunk.host || route.Trunk.domain;
 
-        context += `same => n, Dial(${ tech } / ${ trunkName } / sip: ${ dialStr }@${ host }, 60, T)
-      same => n, Hangup()
-        `;
+        context += `same => n,Dial(${tech}/${trunkName}/sip:${dialStr}@${host},60,T)\n`;
+        context += `same => n,Hangup()\n`;
       } else {
-        context += `same => n, NoOp(Erro: Rota sem tronco valido)
-      same => n, Hangup()
-        `;
+        context += `same => n,NoOp(Erro: Rota sem tronco valido)\n`;
+        context += `same => n,Hangup()\n`;
       }
       context += '\n';
     });
@@ -185,7 +171,7 @@ exten => ${pattern},1,NoOp(Processando rota saida: ${route.name})
 
     let time = '*';
     if (serviceHour.openTime && serviceHour.closeTime) {
-      time = `${ serviceHour.openTime } -${ serviceHour.closeTime } `;
+      time = `${serviceHour.openTime}-${serviceHour.closeTime}`;
     }
 
     let dow = '*';
@@ -193,7 +179,7 @@ exten => ${pattern},1,NoOp(Processando rota saida: ${route.name})
       dow = serviceHour.weekdays;
     }
 
-    return `${ time }| ${ dow }|*|* `;
+    return `${time}|${dow}|*|*`;
   }
 
   generateDestination(route) {
@@ -201,15 +187,15 @@ exten => ${pattern},1,NoOp(Processando rota saida: ${route.name})
 
     switch (route.destinationType) {
       case 'peer':
-        return `Goto(from - internal, ${ route.destinationData || route.destinationId }, 1)`;
+        return `Goto(from-internal,${route.destinationData || route.destinationId},1)`;
       case 'queue':
-        return `Queue(${ route.destinationData || route.destinationId })`;
+        return `Queue(${route.destinationData || route.destinationId})`;
       case 'ivr':
-        return `Goto(ivr - ${ route.destinationId }, s, 1)`;
+        return `Goto(ivr-${route.destinationId},s,1)`;
       case 'external':
-        return `Goto(outbound - all - routes, ${ route.destinationData }, 1)`;
+        return `Goto(outbound-all-routes,${route.destinationData},1)`;
       case 'voicemail':
-         return `Voicemail(${ route.destinationData || route.destinationId }, u)`;
+        return `Voicemail(${route.destinationData || route.destinationId},u)`;
       case 'hangup':
         return 'Hangup()';
       default:
@@ -235,7 +221,7 @@ exten => ${pattern},1,NoOp(Processando rota saida: ${route.name})
     try {
       const { stdout, stderr } = await execAsync('asterisk -rx "dialplan show from-trunk-custom"');
       if (stderr && !stderr.includes('No such context')) {
-        throw new Error(`Erro no dialplan: ${ stderr } `);
+        throw new Error(`Erro no dialplan: ${stderr}`);
       }
       return { valid: true, output: stdout };
     } catch (error) {
