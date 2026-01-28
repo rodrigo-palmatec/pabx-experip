@@ -78,7 +78,6 @@ class DialplanGenerator {
 
     routes.forEach((route, index) => {
       const exten = this.generateExtensionPattern(route);
-      const priority = 1;
 
       context += `; Rota de Entrada: ${route.name} (ID: ${route.id})
 exten => ${exten},1,NoOp(Processando rota entrada: ${route.name})
@@ -132,122 +131,83 @@ exten => ${exten},1,NoOp(Processando rota entrada: ${route.name})
 `;
 
     routes.forEach(route => {
-      // pattern pode ser algo como X., _0X., etc.
       let pattern = route.pattern;
 
       context += `; Rota de Saída: ${route.name}
 exten => ${pattern},1,NoOp(Processando rota saida: ${route.name})
 `;
 
-      // Manipulação de dígitos
       let dialStr = '\\${EXTEN}';
 
-      // Remove prefixo (strip) - campo 'prefix' no banco contém os dígitos a remover (ex: "0")
-      // Devemos usar o comprimento da string para o slice: ${EXTEN:len}
       if (route.prefix && route.prefix.length > 0) {
         dialStr = `\\${EXTEN:${ route.prefix.length }
       } `;
-        }
-        
-        // Adiciona prefixo (prepend) - campo 'prepend' no banco
-        if (route.prepend && route.prepend.length > 0) {
-            dialStr = `${ route.prepend }${ dialStr } `;
-        }
-        
-        // Discar
-        if (route.Trunk) {
-            const tech = 'PJSIP'; 
-            const trunkName = route.Trunk.name;
-            // host do tronco ou domain da conta
-            const host = route.Trunk.host || route.Trunk.domain;
-            
-            context += `same => n, Dial(${ tech } / ${ trunkName } / sip: ${ dialStr }@${ host }, 60, T)
+      }
+
+      if (route.prepend && route.prepend.length > 0) {
+        dialStr = `${ route.prepend }${ dialStr } `;
+      }
+
+      if (route.Trunk) {
+        const tech = 'PJSIP';
+        const trunkName = route.Trunk.name;
+        const host = route.Trunk.host || route.Trunk.domain;
+
+        context += `same => n, Dial(${ tech } / ${ trunkName } / sip: ${ dialStr }@${ host }, 60, T)
       same => n, Hangup()
         `;
-        } else {
-            context += `same => n, NoOp(Erro: Rota sem tronco valido)
+      } else {
+        context += `same => n, NoOp(Erro: Rota sem tronco valido)
       same => n, Hangup()
         `;
-        }
-        context += '\n';
+      }
+      context += '\n';
     });
-    
+
     return context;
   }
-
-  // ... rest of the file ...
 
   generateExtensionPattern(route) {
     if (!route.did || route.did === '') {
       return 's';  // Catch-all
     }
-
-    // Converter DID para padrão Asterisk se necessário
-    let did = route.did;
-
-    // Se não começar com _, adicionar para correspondência exata
-    if (!did.startsWith('_') && !did.startsWith('s')) {
-      // Limpar caracteres não numéricos para correspondência exata
-      did = did.replace(/[^0-9*#+]/g, '');
-    }
-
-    return did;
+    return route.did;
   }
 
   generateTimeCondition(serviceHour) {
-    // Formato: horas,dias,meses,dias_do_mes
-    // Exemplo: 08:00-18:00,mon-fri,*,*
-
     if (!serviceHour) {
-      return '*';  // Sempre
+      return '*|*|*|*';
     }
 
-    let timeCondition = '';
-
-    // Horário
+    let time = '*';
     if (serviceHour.openTime && serviceHour.closeTime) {
-      timeCondition += `${ serviceHour.openTime } -${ serviceHour.closeTime } `;
-    } else {
-      timeCondition += '*';
+      time = `${ serviceHour.openTime } -${ serviceHour.closeTime } `;
     }
 
-    // Dias da semana
+    let dow = '*';
     if (serviceHour.weekdays) {
-      timeCondition += `, ${ serviceHour.weekdays } `;
-    } else {
-      timeCondition += ',*';
+      dow = serviceHour.weekdays;
     }
 
-    // Dias do mês
-    timeCondition += ',*';
-
-    // Meses
-    timeCondition += ',*';
-
-    return timeCondition;
+    return `${ time }| ${ dow }|*|* `;
   }
 
   generateDestination(route) {
+    if (!route.destinationType) return 'Hangup()';
+
     switch (route.destinationType) {
       case 'peer':
         return `Goto(from - internal, ${ route.destinationData || route.destinationId }, 1)`;
-
       case 'queue':
-        return `Goto(from - queue, ${ route.destinationId }, 1)`;
-
+        return `Queue(${ route.destinationData || route.destinationId })`;
       case 'ivr':
-        return `Goto(from - ivr, ${ route.destinationId }, 1)`;
-
+        return `Goto(ivr - ${ route.destinationId }, s, 1)`;
       case 'external':
-        // Formato: Dial(SIP/operadora/${numero})
-        return `Dial(SIP / trunk - operadora / ${ route.destinationData })`;
-
+        return `Goto(outbound - all - routes, ${ route.destinationData }, 1)`;
       case 'voicemail':
-        return `Voicemail(${ route.destinationData || route.destinationId }, u)`;
-
+         return `Voicemail(${ route.destinationData || route.destinationId }, u)`;
       case 'hangup':
         return 'Hangup()';
-
       default:
         return 'Hangup()';
     }
@@ -256,11 +216,9 @@ exten => ${pattern},1,NoOp(Processando rota saida: ${route.name})
   async reloadDialplan() {
     try {
       const { stdout, stderr } = await execAsync('asterisk -rx "dialplan reload"');
-
       if (stderr) {
         logger.warn('Aviso ao recarregar dialplan:', stderr);
       }
-
       logger.info('Dialplan recarregado com sucesso');
       return stdout;
     } catch (error) {
@@ -272,11 +230,9 @@ exten => ${pattern},1,NoOp(Processando rota saida: ${route.name})
   async validateDialplan() {
     try {
       const { stdout, stderr } = await execAsync('asterisk -rx "dialplan show from-trunk-custom"');
-
       if (stderr && !stderr.includes('No such context')) {
         throw new Error(`Erro no dialplan: ${ stderr } `);
       }
-
       return { valid: true, output: stdout };
     } catch (error) {
       logger.error('Erro ao validar dialplan:', error);
