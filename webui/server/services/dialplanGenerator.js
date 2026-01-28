@@ -6,6 +6,8 @@ const execAsync = promisify(exec);
 
 const logger = require('../utils/logger');
 
+// Force update
+
 class DialplanGenerator {
   constructor() {
     this.configPath = '/etc/asterisk';
