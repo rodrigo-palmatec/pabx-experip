@@ -10,7 +10,7 @@ router.get('/', authenticateToken, async (req, res) => {
   try {
     const ami = req.app.get('ami');
     const trunks = configManager.getTrunks();
-    
+
     // Buscar status de registro
     let registrations = [];
     if (ami && ami.isConnected()) {
@@ -20,7 +20,7 @@ router.get('/', authenticateToken, async (req, res) => {
         logger.warn('Não foi possível obter status de registro');
       }
     }
-    
+
     const result = trunks.map(trunk => {
       const reg = registrations.find(r => r.clienturi && r.clienturi.includes(trunk.name));
       return {
@@ -29,7 +29,7 @@ router.get('/', authenticateToken, async (req, res) => {
         status: reg ? reg.status : 'Unknown'
       };
     });
-    
+
     res.json(result);
   } catch (err) {
     logger.error('Erro ao listar troncos:', err);
@@ -41,21 +41,21 @@ router.get('/', authenticateToken, async (req, res) => {
 router.post('/', authenticateToken, async (req, res) => {
   try {
     const { name, host, username, password, context, codecs } = req.body;
-    
+
     if (!name || !host) {
       return res.status(400).json({ error: 'Nome e host são obrigatórios' });
     }
-    
+
     const trunkName = name.startsWith('trunk-') ? name : `trunk-${name}`;
-    
+
     // Adicionar configuração do tronco ao pjsip.conf
     const content = configManager.readConfig('pjsip.conf');
-    
+
     const trunkConfig = `
 ; Tronco ${trunkName}
 [${trunkName}]
 type = endpoint
-context = ${context || 'from-trunk'}
+context = ${context || 'from-trunk-custom'}
 disallow = all
 allow = ${codecs || 'ulaw,alaw,g722'}
 outbound_auth = ${trunkName}-auth
@@ -89,14 +89,14 @@ type = identify
 endpoint = ${trunkName}
 match = ${host}
 `;
-    
+
     configManager.writeConfig('pjsip.conf', content + trunkConfig);
-    
+
     const ami = req.app.get('ami');
     if (ami && ami.isConnected()) {
       await ami.reload('res_pjsip.so');
     }
-    
+
     logger.info(`Tronco ${trunkName} criado por ${req.user.username}`);
     res.status(201).json({ message: 'Tronco criado com sucesso', name: trunkName });
   } catch (err) {
@@ -110,38 +110,38 @@ router.delete('/:name', authenticateToken, async (req, res) => {
   try {
     const { name } = req.params;
     const trunkName = name.startsWith('trunk-') ? name : `trunk-${name}`;
-    
+
     // Remover seções do tronco
     const content = configManager.readConfig('pjsip.conf');
     const lines = content.split('\n');
     const newLines = [];
     let skip = false;
-    
+
     for (const line of lines) {
       const trimmed = line.trim();
-      
-      if (trimmed.startsWith(`[${trunkName}]`) || 
-          trimmed.startsWith(`[${trunkName}-`)) {
+
+      if (trimmed.startsWith(`[${trunkName}]`) ||
+        trimmed.startsWith(`[${trunkName}-`)) {
         skip = true;
         continue;
       }
-      
+
       if (trimmed.startsWith('[') && !trimmed.startsWith(`[${trunkName}`)) {
         skip = false;
       }
-      
+
       if (!skip) {
         newLines.push(line);
       }
     }
-    
+
     configManager.writeConfig('pjsip.conf', newLines.join('\n'));
-    
+
     const ami = req.app.get('ami');
     if (ami && ami.isConnected()) {
       await ami.reload('res_pjsip.so');
     }
-    
+
     logger.info(`Tronco ${trunkName} excluído por ${req.user.username}`);
     res.json({ message: 'Tronco excluído com sucesso' });
   } catch (err) {
