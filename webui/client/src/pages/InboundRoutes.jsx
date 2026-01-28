@@ -15,6 +15,7 @@ export default function InboundRoutes() {
     name: '',
     did: '',
     cidPattern: '',
+    trunkId: '',
     destinationType: 'peer',
     destinationId: '',
     destinationData: '',
@@ -75,6 +76,7 @@ export default function InboundRoutes() {
       name: item.name || '',
       did: item.did || '',
       cidPattern: item.cidPattern || '',
+      trunkId: item.trunkId || '',
       destinationType: item.destinationType || 'peer',
       destinationId: item.destinationId || '',
       destinationData: item.destinationData || '',
@@ -252,7 +254,7 @@ export default function InboundRoutes() {
                   type="text"
                   required
                   value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                 />
               </div>
@@ -262,7 +264,7 @@ export default function InboundRoutes() {
                   <input
                     type="text"
                     value={formData.did}
-                    onChange={(e) => setFormData({...formData, did: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, did: e.target.value })}
                     placeholder="Deixe vazio para qualquer"
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                   />
@@ -272,13 +274,28 @@ export default function InboundRoutes() {
                   <input
                     type="text"
                     value={formData.cidPattern}
-                    onChange={(e) => setFormData({...formData, cidPattern: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, cidPattern: e.target.value })}
                     placeholder="Filtro de origem"
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                   />
                 </div>
               </div>
-              
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Tronco de Origem</label>
+                <select
+                  value={formData.trunkId || ''}
+                  onChange={(e) => setFormData({ ...formData, trunkId: e.target.value })}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                >
+                  <option value="">Qualquer (Todos)</option>
+                  {trunks.map(t => (
+                    <option key={t.name} value={t.name}>{t.name}</option>
+                  ))}
+                </select>
+                <p className="mt-1 text-xs text-gray-500">Opcional: Restringir recebimento a um tronco específico</p>
+              </div>
+
               <div className="border-t pt-4">
                 <h3 className="font-medium text-gray-900 mb-3">Destino Principal</h3>
                 <div className="grid grid-cols-2 gap-4">
@@ -286,7 +303,7 @@ export default function InboundRoutes() {
                     <label className="block text-sm font-medium text-gray-700">Tipo</label>
                     <select
                       value={formData.destinationType}
-                      onChange={(e) => setFormData({...formData, destinationType: e.target.value, destinationId: '', destinationData: ''})}
+                      onChange={(e) => setFormData({ ...formData, destinationType: e.target.value, destinationId: '', destinationData: '' })}
                       className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                     >
                       {Object.entries(destinationTypes).map(([key, label]) => (
@@ -301,15 +318,15 @@ export default function InboundRoutes() {
                         <input
                           type="text"
                           value={formData.destinationData}
-                          onChange={(e) => setFormData({...formData, destinationData: e.target.value})}
+                          onChange={(e) => setFormData({ ...formData, destinationData: e.target.value })}
                           placeholder="Número externo"
                           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                         />
                       ) : (
                         renderDestinationSelect(
-                          formData.destinationType, 
+                          formData.destinationType,
                           formData.destinationId,
-                          (e) => setFormData({...formData, destinationId: e.target.value})
+                          (e) => setFormData({ ...formData, destinationId: e.target.value })
                         )
                       )}
                     </div>
@@ -323,7 +340,7 @@ export default function InboundRoutes() {
                   <label className="block text-sm font-medium text-gray-700">Horário de Atendimento</label>
                   <select
                     value={formData.serviceHourId}
-                    onChange={(e) => setFormData({...formData, serviceHourId: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, serviceHourId: e.target.value })}
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                   >
                     <option value="">Sempre disponível</option>
@@ -338,7 +355,7 @@ export default function InboundRoutes() {
                       <label className="block text-sm font-medium text-gray-700">Tipo</label>
                       <select
                         value={formData.outOfServiceDestType}
-                        onChange={(e) => setFormData({...formData, outOfServiceDestType: e.target.value, outOfServiceDestId: '', outOfServiceDestData: ''})}
+                        onChange={(e) => setFormData({ ...formData, outOfServiceDestType: e.target.value, outOfServiceDestId: '', outOfServiceDestData: '' })}
                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                       >
                         {Object.entries(destinationTypes).map(([key, label]) => (
@@ -353,15 +370,15 @@ export default function InboundRoutes() {
                           <input
                             type="text"
                             value={formData.outOfServiceDestData}
-                            onChange={(e) => setFormData({...formData, outOfServiceDestData: e.target.value})}
+                            onChange={(e) => setFormData({ ...formData, outOfServiceDestData: e.target.value })}
                             placeholder="Número externo"
                             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                           />
                         ) : (
                           renderDestinationSelect(
-                            formData.outOfServiceDestType, 
+                            formData.outOfServiceDestType,
                             formData.outOfServiceDestId,
-                            (e) => setFormData({...formData, outOfServiceDestId: e.target.value})
+                            (e) => setFormData({ ...formData, outOfServiceDestId: e.target.value })
                           )
                         )}
                       </div>
@@ -374,7 +391,7 @@ export default function InboundRoutes() {
                 <input
                   type="checkbox"
                   checked={formData.enabled}
-                  onChange={(e) => setFormData({...formData, enabled: e.target.checked})}
+                  onChange={(e) => setFormData({ ...formData, enabled: e.target.checked })}
                   className="rounded border-gray-300 text-blue-600"
                 />
                 <span className="ml-2 text-sm">Rota ativa</span>
