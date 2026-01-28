@@ -16,7 +16,7 @@ function ExtensionModal({ isOpen, onClose, onSave, extension }) {
       setForm({
         extension: extension.extension,
         name: extension.callerid?.replace(/[<>"\d]/g, '').trim() || '',
-        password: '',
+        password: extension.password || '',
         context: extension.context || 'internal'
       })
     } else {
@@ -80,7 +80,7 @@ function ExtensionModal({ isOpen, onClose, onSave, extension }) {
               Senha SIP
             </label>
             <input
-              type="password"
+              type="text"
               value={form.password}
               onChange={(e) => setForm({ ...form, password: e.target.value })}
               className="input"
@@ -164,8 +164,8 @@ export default function Extensions() {
     }
   }
 
-  const filtered = extensions.filter(e => 
-    e.extension.includes(search) || 
+  const filtered = extensions.filter(e =>
+    e.extension.includes(search) ||
     (e.callerid && e.callerid.toLowerCase().includes(search.toLowerCase()))
   )
 
@@ -176,7 +176,7 @@ export default function Extensions() {
           <h1 className="text-2xl font-bold text-gray-900">Ramais</h1>
           <p className="text-gray-500">Gerenciar ramais SIP/PJSIP</p>
         </div>
-        <button 
+        <button
           onClick={() => { setEditing(null); setModalOpen(true) }}
           className="btn-primary flex items-center gap-2"
         >

@@ -145,7 +145,8 @@ class ConfigManager {
             callerid: values.callerid || section,
             context: values.context || 'internal',
             auth: values.auth,
-            aors: values.aors
+            aors: values.aors,
+            password: (values.auth && config[values.auth]) ? config[values.auth].password : ''
           });
         }
       }
