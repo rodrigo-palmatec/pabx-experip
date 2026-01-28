@@ -246,7 +246,9 @@ password = ${ext.password}
           name: trunkName,
           host: endpoint.outbound_proxy || endpoint.from_domain || '',
           context: endpoint.context || 'from-trunk',
-          ...endpoint
+          ...endpoint,
+          username: (endpoint.auth && config[endpoint.auth]) ? config[endpoint.auth].username : '',
+          password: (endpoint.auth && config[endpoint.auth]) ? config[endpoint.auth].password : ''
         });
       }
 

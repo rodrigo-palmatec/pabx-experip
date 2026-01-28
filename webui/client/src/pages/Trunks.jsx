@@ -24,7 +24,7 @@ function TrunkModal({ isOpen, onClose, onSave, trunk }) {
         name: trunk.name || '',
         host: trunk.host || '',
         username: trunk.username || '',
-        password: '',
+        password: trunk.password || '',
         context: trunk.context || 'from-trunk',
         codecs: trunk.codecs || 'ulaw,alaw,g722',
         authType: trunk.authType || 'send_register',
@@ -135,11 +135,11 @@ function TrunkModal({ isOpen, onClose, onSave, trunk }) {
                 Senha SIP
               </label>
               <input
-                type="password"
+                type="text"
                 value={form.password}
                 onChange={(e) => setForm({ ...form, password: e.target.value })}
                 className="input"
-                placeholder={trunk ? 'Manter atual' : 'Senha'}
+                placeholder="Senha"
               />
             </div>
           </div>
@@ -279,7 +279,7 @@ export default function Trunks() {
           <h1 className="text-2xl font-bold text-gray-900">Troncos</h1>
           <p className="text-gray-500">Gerenciar conexões com provedores VoIP</p>
         </div>
-        <button 
+        <button
           onClick={() => { setEditing(null); setModalOpen(true) }}
           className="btn-primary flex items-center gap-2"
         >
