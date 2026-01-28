@@ -81,12 +81,14 @@ CDR.belongsTo(CostCenter, { foreignKey: 'costCenterId', as: 'CostCenter' });
 // Sync database
 const syncDatabase = async (options = {}) => {
   try {
-    await sequelize.sync(options);
-    console.log('Database synchronized successfully');
-    
+    // Use alter: true to update tables if they exist but are missing columns
+    // This is safer than force: true which drops data
+    await sequelize.sync({ ...options, alter: true });
+    console.log('Database synchronized successfully (alter: true)');
+
     // Create default data if needed
     await createDefaultData();
-    
+
     return true;
   } catch (error) {
     console.error('Error synchronizing database:', error);
