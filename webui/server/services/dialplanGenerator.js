@@ -70,6 +70,9 @@ class DialplanGenerator {
 [from-trunk-custom]
 ; Contexto principal para rotas de entrada
 
+[from-trunk]
+include => from-trunk-custom
+
 `;
   }
 
