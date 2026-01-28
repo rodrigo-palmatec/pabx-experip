@@ -250,6 +250,15 @@ password = ${ext.password}
           username: (endpoint.auth && config[endpoint.auth]) ? config[endpoint.auth].username : '',
           password: (endpoint.auth && config[endpoint.auth]) ? config[endpoint.auth].password : ''
         });
+
+        if (endpoint.auth) {
+          logger.info(`[Debug] Tronco: ${trunkName}, Auth: ${endpoint.auth}`);
+          if (config[endpoint.auth]) {
+            logger.info(`[Debug] Auth section found. Username: ${config[endpoint.auth].username}, Password: ${config[endpoint.auth].password ? '***' : 'empty'}`);
+          } else {
+            logger.warn(`[Debug] Auth section '${endpoint.auth}' NOT FOUND. Keys available: ${Object.keys(config).filter(k => k.includes('auth')).join(', ')}`);
+          }
+        }
       }
 
       return trunks;
